@@ -1,0 +1,155 @@
+/**
+ * All of the CSS for your admin-specific functionality should be
+ * included in this file.
+ */
+
+/**
+ * ============================================
+ *         Cards into Settings Page
+ * ============================================
+ **/
+.agoraio .card {
+  background: #fff none repeat scroll 0 0;
+  border: 1px solid #3ab7f8;
+  border-left: 4px solid #3ab7f8;
+  box-shadow: 0 1px 1px rgba(0, 0, 0, 0.04);
+  margin-top: 20px;
+  max-width: 520px;
+  min-width: 255px;
+  padding: 0.7em 2em 1em;
+  position: relative;
+  transition: 0.35s ease all;
+}
+
+.agoraio .card:hover {
+  box-shadow: 3px 3px 4px 0px #cdcdcd;
+}
+
+.agoraio .card img.icon {
+  float: left;
+  margin: 8px 8px 8px -8px;
+}
+
+.agoraio .card h2.title {
+  float: left;
+  max-width: 240px;
+  font-size: 1.3em;
+  font-weight: 600;
+}
+
+.agoraio .card .infobox {
+  float: right;
+  font-size: 13px;
+  color: #666;
+  margin: 2px 0 5px;
+  line-height: 1.5;
+  max-width: 240px;
+}
+
+.agoraio .card .inside .form-table th {
+  padding: 15px 10px 15px 0;
+  width: 160px;
+}
+
+.agoraio .card .inside .form-table td {
+  padding: 10px 10px;
+}
+
+.agoraio .card .checkboxes li {
+  margin: 0;
+}
+
+.agoraio .card .flex {
+  display: flex;
+  flex-direction: row;
+}
+
+.agoraio .card .flex .col {
+  flex-grow: 1;
+  padding: 10px 0;
+  min-width: 40%;
+}
+
+.agoraio .card .label {
+  font-weight: bold;
+}
+
+.agoraio .card .align-right {
+  text-align: right;
+}
+
+
+/**
+ * ============================================
+ *   Internal tabs into Channel settings page
+ * ============================================
+ **/
+#agora-form-settings .inside {
+  margin: 0;
+  padding: 0;
+  display: flex;
+}
+.agoraio .nav-tabs {
+  min-width: 25%;
+  margin: 0;
+  list-style-type: none;
+  background-color: #efefef;
+}
+.agoraio .nav-tabs .dashicons-before {
+  padding-right: 5px;
+}
+
+.agoraio .nav-tabs > li {
+  width: 100%;
+  margin-bottom: -1px;
+}
+
+.agoraio .nav-tabs > li > a {
+  line-height: 1.5;
+  padding: 12px;
+  text-decoration: none;
+  display: block;
+  border-bottom: 1px solid #dedede;
+}
+
+.agoraio .nav-tabs > li > a:hover {
+  border-color: #eee #eee #ddd;
+}
+
+.agoraio .nav-tabs > li.active > a,
+.agoraio .nav-tabs > li.active > a:hover,
+.agoraio .nav-tabs > li.active > a:focus {
+  color: #555;
+  cursor: default;
+  background-color: #fff;
+  border-color: transparent;
+  box-shadow: none;
+}
+
+.agoraio .tab-content {
+  /* min-width: 70%; */
+  overflow: hidden;
+}
+.agoraio .tab-content > .tab-pane {
+  width: 94%;
+  display: none;
+}
+
+.agoraio .tab-content > .tab-pane.active {
+  display: block;
+  padding: 20px;
+  background-color: #fff;
+  /* box-shadow: 0 5px 4px -2px rgba(0, 0, 0, 0.15); */
+}
+
+
+/** =========  FORMS  ========= ***/
+.agoraio .large-dropdown {
+  min-width: 180px;
+}
+
+
+/** ========= Admin Table ========== **/
+#agoraio-list-table .column-shortcode {
+  width: 400px;
+}
