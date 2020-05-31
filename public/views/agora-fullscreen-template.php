@@ -61,14 +61,17 @@
   <?php wp_footer(); ?>
   <script>
     // video profile settings
+    // <?php echo $channel->get_properties()['host'] ?>
+
     window.cameraVideoProfile = '<?php echo $instance['videoprofile'] ?>'; // 640x480 @ 30fps & 750kbs
     window.screenVideoProfile = '<?php echo $instance['screenprofile'] ?>';
     window.addEventListener('load', function() {
+      window.agoraMode = 'communication';
       window.agoraAppId = '<?php echo $agora->settings['appId'] ?>'; // set app id
       window.channelName = '<?php echo $channel->title() ?>'; // set channel name
       window.channelId = '<?php echo $channel->id() ?>'; // set channel name
       window.userID = parseInt(`${<?php echo $current_user->ID; ?>}`, 10);
-      window.agoraMode = 'communication';
+      window.isMainHost = <?php echo $channel->get_properties()['host']==$current_user->ID ? 'true' : 'false'; ?>
 
       window.AGORA_COMMUNICATION_UI.fullscreenInit();
     });

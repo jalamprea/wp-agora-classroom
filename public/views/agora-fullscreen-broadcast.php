@@ -167,9 +167,9 @@ $current_user       = wp_get_current_user();
       window.channelName = '<?php echo $channel->title() ?>'; // set channel name
       window.channelId = '<?php echo $channel->id() ?>'; // set channel name
       window.agoraCurrentRole = 'host';
-      window.agoraMode = 'audience';
-      window.userID = parseInt(`${<?php echo $current_user->ID; ?>}`, 10);
       window.agoraMode = 'broadcast';
+      window.userID = parseInt(`${<?php echo $current_user->ID; ?>}`, 10);
+      window.isMainHost = <?php echo $channel->get_properties()['host']==$current_user->ID ? 'true' : 'false'; ?>
 
       // create client instance
       window.agoraClient = AgoraRTC.createClient({mode: 'live', codec: 'vp8'}); // h264 better detail at a higher motion
