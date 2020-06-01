@@ -5,12 +5,14 @@
     <div id="main-container" class="controls-top">
       <div id="full-screen-video">
         <div id="video-canvas"></div>
+
         <div id="screen-share-btn-container" class="col-2 float-right text-right mt-2">
           <button id="screen-share-btn"  type="button" class="btn btn-xs">
             <i id="screen-share-icon" class="fas fa-share-square"></i>
             <span class="spinner-border spinner-border-sm" role="status" aria-hidden="true" style="display:none"></span>
           </button>
         </div>
+
         <div id="buttons-container" class="row justify-content-center mt-3">
           <div class="col-md-2 text-center">
             <button id="mic-btn" type="button" class="btn btn-block btn-dark btn-xs">
@@ -28,12 +30,14 @@
             </button>
           </div>
         </div>
+
         <div id="rejoin-container" class="rejoin-container" style="display: none">
           <button id="rejoin-btn" class="btn btn-primary btn-lg" type="button">
             <span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
             <?php _e('Rejoin to this channel', 'agoraio'); ?>
           </button>
         </div>
+
         <div id="lower-video-bar" class="row mb-0">
           <div id="remote-streams-container" class="container col-9 ml-1">
             <div id="remote-streams" class="row">
@@ -47,9 +51,9 @@
             <div id="no-local-video" class="col text-center">
               <i id="user-icon" class="fas fa-user"></i>
             </div>
-            <div id="local-video" class="col p-0"></div>
           </div>
         </div>
+
       </div>
     </div>
   </div>
@@ -62,6 +66,10 @@
       window.channelName = '<?php echo $channel->title() ?>'; // set channel name
       window.channelId = '<?php echo $channel->id() ?>'; // set channel name
       window.userID = parseInt(`${<?php echo $current_user->ID; ?>}`, 10);
+      if (window.userID>0 && window.userID<100) {
+        window.userID += 100;
+      }
+      window.hostID = <?php echo $channel->get_properties()['host']; ?>;
       window.isMainHost = <?php echo $channel->get_properties()['host']==$current_user->ID ? 'true' : 'false'; ?>;
       window.agoraMode = 'communication';
 

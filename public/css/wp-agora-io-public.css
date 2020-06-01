@@ -166,11 +166,12 @@ body .agora {
   margin: 0;
 }
 
-#local-video {
-  position: absolute;
+#local-video-cam1, #local-video-cam2 {
+  position: relative;
   z-index: 1;
   height: 20vh;
-  max-width: 100%;
+  width: 280px;
+  float: left;
 }
 
 .remote-video {
@@ -442,7 +443,7 @@ body .agora {
 
 #local-stream-container {
   position: relative; 
-  display: inline-block;
+  display: flex;
 }
 
 .remote-stream-container {

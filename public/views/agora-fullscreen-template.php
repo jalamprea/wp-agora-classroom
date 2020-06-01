@@ -71,7 +71,11 @@
       window.channelName = '<?php echo $channel->title() ?>'; // set channel name
       window.channelId = '<?php echo $channel->id() ?>'; // set channel name
       window.userID = parseInt(`${<?php echo $current_user->ID; ?>}`, 10);
+      if (window.userID>0 && window.userID<100) {
+        window.userID += 100;
+      }
       window.isMainHost = <?php echo $channel->get_properties()['host']==$current_user->ID ? 'true' : 'false'; ?>;
+      window.hostID = <?php echo $channel->get_properties()['host']; ?>;
 
       window.AGORA_COMMUNICATION_UI.fullscreenInit();
     });

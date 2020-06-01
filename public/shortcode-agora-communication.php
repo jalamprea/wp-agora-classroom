@@ -18,7 +18,7 @@ function renderCommnicationShortcode($agora, $attrs) {
   
   wp_enqueue_script(
     'AgoraCommunicationClient',
-    plugin_dir_url( __FILE__ ) . 'js/agora-communication-client.js',
+    plugin_dir_url( __FILE__ ) . 'js/agora-classroom-client.js',
     array('AgoraSDK'), null );
 
   $channel = WP_Agora_Channel::get_instance($instance['channel_id']);

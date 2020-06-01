@@ -106,8 +106,8 @@ class WP_Agora_PageTemplate {
         wp_enqueue_style( 'jquery.slick.css', $slickURL . 'slick.css', null, null );
         wp_enqueue_style( 'jquery.slick.theme', $slickURL . 'slick-theme.css', null, null );
 
-        wp_enqueue_script( 'agora-communication-client',
-          plugin_dir_url( __FILE__ ) .'js/agora-communication-client.js', array('jquery'), null, true );
+        wp_enqueue_script( 'agora-classroom-client',
+          plugin_dir_url( __FILE__ ) .'js/agora-classroom-client.js', array('jquery'), null, true );
         wp_enqueue_script( 'agora-communication-ui',
           plugin_dir_url( __FILE__ ) .'js/communication-ui.js', array('jquery'), null, true );
       }

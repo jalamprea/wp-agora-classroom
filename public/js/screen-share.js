@@ -116,11 +116,11 @@ window.AGORA_SCREENSHARE_UTILS = {
     }); 
   },
 
-  agora_generateAjaxToken: function (cb) {
+  agora_generateAjaxToken: function (cb, uid) {
     var params = {
       action: 'generate_token', // wp ajax action
       cid: window.channelId,
-      uid: 0, // needed to generate a new uid
+      uid: uid || 0, // needed to generate a new uid
     };
     window.AGORA_UTILS.agoraApiRequest(ajax_url, params).done(function(data){
       if (data && data.token) {
