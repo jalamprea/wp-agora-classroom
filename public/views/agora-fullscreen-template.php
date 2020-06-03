@@ -47,7 +47,6 @@
         <div id="no-local-video" class="text-center">
           <i id="user-icon" class="fas fa-user"></i>
         </div>
-        <div id="local-video"></div>
       </div>
 
       <div class="remote-users">

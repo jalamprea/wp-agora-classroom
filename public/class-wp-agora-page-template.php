@@ -108,6 +108,8 @@ class WP_Agora_PageTemplate {
 
         wp_enqueue_script( 'agora-classroom-client',
           plugin_dir_url( __FILE__ ) .'js/agora-classroom-client.js', array('jquery'), null, true );
+        wp_enqueue_script('screen-share', 
+            plugin_dir_url( __FILE__ ) . "js/screen-share.js", array('jquery'), null, true);
         wp_enqueue_script( 'agora-communication-ui',
           plugin_dir_url( __FILE__ ) .'js/communication-ui.js', array('jquery'), null, true );
       }
