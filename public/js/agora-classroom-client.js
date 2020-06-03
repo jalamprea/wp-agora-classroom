@@ -26,7 +26,7 @@ window.RTC = {
   params: {}
 };
 
-function initCameraLocalSettings() {
+async function initCameraLocalSettings() {
   const localDataRaw = window.localStorage.getItem('AGORA_DEVICES_ORDER');
   if ( localDataRaw ) {
     const localData = JSON.parse(localDataRaw);
@@ -42,6 +42,9 @@ function initCameraLocalSettings() {
     RTC.localStreams.cam2.device = window.availableCams[1];
     window.localStorage.setItem('AGORA_DEVICES_ORDER', JSON.stringify(window.availableCams));
   }
+
+  jQuery('#list-camera1').val(RTC.localStreams.cam1.device.deviceId);
+  jQuery('#list-camera2').val(RTC.localStreams.cam2.device.deviceId);
 }
 
 
@@ -54,10 +57,23 @@ async function countCameras() {
       window.availableCams = devices.filter(device => device.kind === "videoinput");
 
       if (isMainHost && window.availableCams.length>1) {
+        window.availableCams.forEach(function (video) {
+            jQuery("<option/>", {
+              value: video.deviceId,
+              text: video.label,
+            }).appendTo("#list-camera1")
+            jQuery("<option/>", {
+              value: video.deviceId,
+              text: video.label,
+            }).appendTo("#list-camera2")
+          });
+
+        // read from localStorage or save the new settings:
         initCameraLocalSettings();
       } else {
         RTC.localStreams.cam1.device = window.availableCams[0];
       }
+
 
       return window.availableCams.length;
     } catch(ex) {
@@ -172,7 +188,7 @@ function createCameraStream(uid, indexCam) {
   
     indexCam==='cam1' && window.AGORA_COMMUNICATION_UI.enableUiControls(localStream); // move after testing
     RTC.localStreams[indexCam].stream = localStream; // keep track of the camera stream for later
-
+    console.clear();
   }, function (err) {
     AgoraRTC.Logger.error("[ERROR] : getUserMedia failed", err);
   });

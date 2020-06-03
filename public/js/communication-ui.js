@@ -77,6 +77,35 @@ window.AGORA_COMMUNICATION_UI = {
         // window.history.back(); // quick reset
       }
     });
+
+
+    // Camera settings:
+    if (isMainHost) {
+
+      const camSettingsModal = jQuery('#camSettingsModal');
+      camSettingsModal.on('show.bs.modal', function (event) {
+        jQuery('#list-camera1').val(RTC.localStreams.cam1.device.deviceId);
+        jQuery('#list-camera2').val(RTC.localStreams.cam2.device.deviceId);
+      });
+
+      camSettingsModal.find('.btn-primary').click(function(evt) {
+        const cam1 = jQuery('#list-camera1').val();
+        const cam2 = jQuery('#list-camera2').val();
+
+        if (cam1===cam2) {
+          alert('Plase select different source for each camera');
+          return;
+        }
+
+        RTC.localStreams.cam1.device = window.availableCams.find(cam => cam.deviceId===cam1);
+        RTC.localStreams.cam2.device = window.availableCams.find(cam => cam.deviceId===cam2);
+        const newCamsArray = [RTC.localStreams.cam1.device, RTC.localStreams.cam2.device];
+        window.localStorage.setItem('AGORA_DEVICES_ORDER', JSON.stringify(newCamsArray));
+        console.log('New camera settings updated!');
+
+        camSettingsModal.modal('hide');
+      })
+    }
   },
 
   toggleMic: function (localStream) {
