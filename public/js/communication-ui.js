@@ -132,7 +132,7 @@ window.AGORA_COMMUNICATION_UI = {
     } else {
       localStream.unmuteVideo(); // enable the local video
       window.AGORA_UTILS.toggleVisibility("#no-local-video", false); // hide the user icon when video is enabled
-      window.AGORA_COMMUNICATION_UI.logCameraDevices();
+      // window.AGORA_COMMUNICATION_UI.logCameraDevices();
     }
   },
 
@@ -147,7 +147,7 @@ window.AGORA_COMMUNICATION_UI = {
       }
     });
 
-    agoraClient.getCameras(function(cameras) {
+    RTC.client.cam1.getCameras(function(cameras) {
       var devCount = cameras.length;
       var id = cameras[0].deviceId;
       console.log("getCameras: " + JSON.stringify(cameras));
