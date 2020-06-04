@@ -22,8 +22,15 @@ window.RTC = {
       stream: {}
     }
   },
-  remoteStreams: {}, // remote streams obj struct [id : stream] 
-  params: {}
+  remoteStreams: {} // remote streams obj struct [id : stream] 
+};
+
+window.screenShareActive = false;
+window.AGORA_COMMUNICATION_CLIENT = {
+  initClientAndJoinChannel: initClientAndJoinChannel,
+  agoraJoinChannel: agoraJoinChannel,
+  addRemoteStreamMiniView: addRemoteStreamMiniView,
+  agoraLeaveChannel: agoraLeaveChannel
 };
 
 async function initCameraLocalSettings() {
@@ -83,12 +90,7 @@ async function countCameras() {
 
   return 0;
 }
-window.AGORA_COMMUNICATION_CLIENT = {
-  initClientAndJoinChannel: initClientAndJoinChannel,
-  agoraJoinChannel: agoraJoinChannel,
-  addRemoteStreamMiniView: addRemoteStreamMiniView,
-  // agoraLeaveChannel: agoraLeaveChannel
-};
+
 
 async function initClientAndJoinChannel(agoraAppId, channelName) {
   // TODO: start to define Logger level
@@ -129,6 +131,11 @@ function agoraJoinChannel(channelName, indexCam) {
   // const token = window.AGORA_TOKEN_UTILS.agoraGenerateToken();
 
   const callback = function(err, token) {
+    if (err) {
+      console.error('Token Error:', err);
+      alert('Error generating your Access Token, pease reload this page.');
+      return;
+    }
     RTC.client[indexCam].join(token, channelName, userId, function(uid) {
       AgoraRTC.Logger.info("User " + uid + " join channel successfully");
       RTC.localStreams[indexCam].id = uid; // keep track of the stream uid 
@@ -138,6 +145,7 @@ function agoraJoinChannel(channelName, indexCam) {
         /* if (err==='UID_CONFLICT') { } */
     });
   };
+  
   let userId = window.userID || 0;
   if (indexCam==='cam2') {
     userId *= userId;
@@ -192,6 +200,52 @@ function createCameraStream(uid, indexCam) {
   }, function (err) {
     AgoraRTC.Logger.error("[ERROR] : getUserMedia failed", err);
   });
+}
+
+
+function agoraLeaveChannel() {
+  
+  if(screenShareActive) {
+    window.AGORA_SCREENSHARE_UTILS.stopScreenShare();
+  }
+
+  RTC.client.cam1.leave(function() {
+    AgoraRTC.Logger.info("client leaves channel");
+    RTC.localStreams.cam1.stream.stop() // stop the camera stream playback
+    RTC.client.cam1.unpublish(RTC.localStreams.cam1.stream); // unpublish the camera stream
+    RTC.localStreams.cam1.stream.close(); // clean up and close the camera stream
+    jQuery("#remote-streams").empty() // clean up the remote feeds
+    //disable the UI elements
+    jQuery("#mic-btn").prop("disabled", true);
+    jQuery("#video-btn").prop("disabled", true);
+    jQuery("#screen-share-btn").prop("disabled", true);
+    jQuery("#exit-btn").prop("disabled", true);
+    // hide the mute/no-video overlays
+    window.AGORA_UTILS.toggleVisibility("#mute-overlay", false); 
+    window.AGORA_UTILS.toggleVisibility("#no-local-video", false);
+
+    jQuery('#rejoin-container').show();
+    jQuery('#buttons-container').addClass('hidden');
+
+    jQuery('#slick-avatars').slick('unslick').html('').slick(window.slickSettings);
+    
+    // show the modal overlay to join
+    // jQuery("#modalForm").modal("show"); 
+  }, function(err) {
+    AgoraRTC.Logger.error("client leave failed ", err); //error handling
+  });
+
+  // second camera on main hosts:
+  if (isMainHost) {
+    RTC.client.cam2.leave(() => {
+      RTC.localStreams.cam2.stream.stop() // stop the camera stream playback
+      RTC.client.cam2.unpublish(RTC.localStreams.cam2.stream); // unpublish the camera stream
+      RTC.localStreams.cam2.stream.close(); // clean up and close the camera stream
+      AgoraRTC.Logger.info("client2 leaves channel");
+    }, err => {
+      AgoraRTC.Logger.error("Client2 leave failed ", err); //error handling
+    });
+  }
 }
 
 

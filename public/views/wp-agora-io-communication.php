@@ -6,13 +6,6 @@
       <div id="full-screen-video">
         <div id="video-canvas"></div>
 
-        <div id="screen-share-btn-container" class="col-2 float-right text-right mt-2">
-          <button id="screen-share-btn"  type="button" class="btn btn-xs">
-            <i id="screen-share-icon" class="fas fa-share-square"></i>
-            <span class="spinner-border spinner-border-sm" role="status" aria-hidden="true" style="display:none"></span>
-          </button>
-        </div>
-
         <div id="buttons-container" class="row justify-content-center mt-3">
           <div class="col-md-2 text-center">
             <button id="mic-btn" type="button" class="btn btn-block btn-dark btn-xs">
@@ -54,6 +47,48 @@
           </div>
         </div>
 
+      </div>
+    </div>
+  </div>
+    <!-- Cam Settings Modal -->
+  <div class="modal fade" id="camSettingsModal" tabindex="-1" role="dialog" aria-labelledby="camSettingsModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered" role="document">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="camSettingsModalLabel">Video Camera Settings</h5>
+          <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+            <span aria-hidden="true">&times;</span>
+          </button>
+        </div>
+        <div class="modal-body">
+          <div class="row">
+            <div class="col">
+              <div class="input-field">
+                <label for="list-camera1" class="active">Camera 1</label>
+                <select name="list-camera1" id="list-camera1"></select>
+              </div>
+            </div>
+
+            <div class="col">
+              <div class="input-field">
+                <label for="list-camera2" class="active">Camera 2</label>
+                <select name="list-camera2" id="list-camera2"></select>
+              </div>
+            </div>
+          </div>
+
+          <div class="row">
+            <div class="col">
+              <p> &nbsp; </p>
+              <p>Remember reload this page after change this settings!</p>
+            </div>
+          </div>
+
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+          <button type="button" class="btn btn-primary">Save changes</button>
+        </div>
       </div>
     </div>
   </div>

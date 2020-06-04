@@ -169,8 +169,14 @@ window.AGORA_COMMUNICATION_UI = {
       if (jQuery("#video-icon").hasClass('fa-video-slash')) {
         jQuery("#video-icon").toggleClass('fa-video').toggleClass('fa-video-slash'); // toggle the video icon
         window.AGORA_UTILS.toggleVisibility("#no-local-video", false); // hide the user icon when video is enabled
-      } 
-      window.AGORA_COMMUNICATION_CLIENT.agoraJoinChannel(window.channelName);
+      }
+
+      // all users always have client1
+      window.AGORA_COMMUNICATION_CLIENT.agoraJoinChannel(window.channelName, 'cam1');
+
+      if (window.isMainHost && window.availableCams.length>1) {
+        window.AGORA_COMMUNICATION_CLIENT.agoraJoinChannel(window.channelName, 'cam2');
+      }
     }
   },
 
