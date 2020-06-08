@@ -38,8 +38,11 @@ window.AGORA_COMMUNICATION_UI = {
     });
 
     jQuery("#exit-btn").click(function(){
-      console.log("so sad to see you leave the channel");
-      window.AGORA_COMMUNICATION_CLIENT.agoraLeaveChannel(); 
+      const sure = confirm("Are you sure to leave this room?");
+      if (sure) {
+        console.log("so sad to see you leave the channel");
+        window.AGORA_COMMUNICATION_CLIENT.agoraLeaveChannel(); 
+      }
     });
 
     jQuery('#rejoin-btn').click(window.AGORA_COMMUNICATION_UI.rejoinChannel);
