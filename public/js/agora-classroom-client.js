@@ -93,16 +93,15 @@ async function countCameras() {
 
 
 async function initClientAndJoinChannel(agoraAppId, channelName) {
-  // TODO: start to define Logger level
   // https://docs.agora.io/en/faq/API%20Reference/web/modules/agorartc.logger.html
   // AgoraRTC.Logger.setLogLevel(AgoraRTC.Logger.WARNING);
 
   // init Agora SDK per each client/cam
-  const initCam = function(indexCam) {
+  const initCam = function(indexCam, cb) {
     RTC.client[indexCam] = AgoraRTC.createClient({mode: 'rtc', codec: 'vp8'});     
     RTC.client[indexCam].init(agoraAppId, function () {
       AgoraRTC.Logger.info("AgoraRTC client " + indexCam + " initialized");
-      agoraJoinChannel(channelName, indexCam); // join channel upon successfull init
+      agoraJoinChannel(channelName, indexCam, cb); // join channel upon successfull init
     }, function (err) {
       AgoraRTC.Logger.error("[ERROR] : AgoraRTC client " + indexCam + " init failed", err);
     });
@@ -111,23 +110,23 @@ async function initClientAndJoinChannel(agoraAppId, channelName) {
   const cams = await countCameras();
   if (cams>0) {
     console.log('=== Starting client 1')
-    initCam("cam1");
-  }
+    initCam("cam1", function() {
 
-  if (cams>1 && window.isMainHost) {
-    console.log('=== Starting client 2')
-    initCam("cam2");
+      if (cams>1 && window.isMainHost) {
+        console.log('=== Starting client 2')
+        initCam("cam2");
+      }
+
+    });
   }
+  initAgoraEvents();
 
   // Screenshare Client:
   RTC.client.screen = AgoraRTC.createClient({mode: 'rtc', codec: 'vp8'});
-
-
-  initAgoraEvents();
 }
 
 // join a channel
-function agoraJoinChannel(channelName, indexCam) {
+function agoraJoinChannel(channelName, indexCam, cb) {
   // const token = window.AGORA_TOKEN_UTILS.agoraGenerateToken();
 
   const callback = function(err, token) {
@@ -146,6 +145,8 @@ function agoraJoinChannel(channelName, indexCam) {
       AgoraRTC.Logger.info("User " + uid + " join channel successfully");
       RTC.localStreams[indexCam].id = uid; // keep track of the stream uid 
       createCameraStream(uid, indexCam);
+
+      cb && cb();
     }, function(errorJoin) {
         AgoraRTC.Logger.error("[ERROR] : join channel failed", errorJoin);
         /* if (err==='UID_CONFLICT') { } */
@@ -191,7 +192,14 @@ function createCameraStream(uid, indexCam) {
     // localStream.play('local-video'); // play the given stream within the local-video div
     const localVideoDiv = document.createElement('div');
     localVideoDiv.id = 'local-video-' + indexCam;
-    document.getElementById('local-stream-container').appendChild(localVideoDiv);
+
+    if (isMainHost) {
+      localVideoDiv.classList.add('videoItem');
+      document.getElementById('main-video-container').appendChild(localVideoDiv);
+    } else {
+      localVideoDiv.classList.add('student-video');
+      document.getElementById('remote-streams').appendChild(localVideoDiv);
+    }
 
     localStream.play('local-video-' + indexCam);
 
@@ -202,7 +210,7 @@ function createCameraStream(uid, indexCam) {
   
     indexCam==='cam1' && window.AGORA_COMMUNICATION_UI.enableUiControls(localStream); // move after testing
     RTC.localStreams[indexCam].stream = localStream; // keep track of the camera stream for later
-    console.clear();
+    // console.clear();
   }, function (err) {
     AgoraRTC.Logger.error("[ERROR] : getUserMedia failed", err);
   });
@@ -268,7 +276,7 @@ function addRemoteStreamMiniView(remoteStream){
   if (remoteStreamsDiv.length>0) {
     playerFound = true;
     remoteStreamsDiv.append(
-      jQuery('<div/>', {'id': streamId + '_container',  'class': 'remote-stream-container col'}).append(
+      jQuery('<div/>', {'id': 'remote-container-'+streamId,  'class': 'remote-stream-container student-video'}).append(
         jQuery('<div/>', {'id': streamId + '_mute', 'class': 'mute-overlay'}).append(
             jQuery('<i/>', {'class': 'fas fa-microphone-slash'})
         ),
@@ -279,7 +287,7 @@ function addRemoteStreamMiniView(remoteStream){
       )
     );
   } else {
-    const avatarCircleDiv = jQuery('#uid-'+streamId);
+    /* const avatarCircleDiv = jQuery('#uid-'+streamId);
     if (avatarCircleDiv.length>0) {
       playerFound = true;
       const circle = avatarCircleDiv.find('.avatar-circle');
@@ -295,23 +303,24 @@ function addRemoteStreamMiniView(remoteStream){
         )
       )
       circle.find('img').hide();
-    }
+    } */
   }
   playerFound && remoteStream.play('agora_remote_' + streamId); 
 
-  var containerId = '#' + streamId + '_container';
+  var containerId = '#' + 'remote-container-' + streamId;
   jQuery(containerId).dblclick(function() {
     // play selected container as full screen - swap out current full screen stream
-    RTC.remoteStreams[mainStreamId].stop(); // stop the main video stream playback
-    addRemoteStreamMiniView(RTC.remoteStreams[mainStreamId]); // send the main video stream to a container
-    const parentCircle = jQuery(containerId).parent();
-    if (parentCircle.hasClass('avatar-circle')) {
-      parentCircle.find('img').show();
-    }
-    jQuery(containerId).empty().remove(); // remove the stream's miniView container
-    RTC.remoteStreams[streamId].stop() // stop the container's video stream playback
-    RTC.remoteStreams[streamId].play('video-canvas'); // play the remote stream as the full screen video
-    mainStreamId = streamId; // set the container stream id as the new main stream id
+    console.log('Double click!')
+    // RTC.remoteStreams[mainStreamId].stop(); // stop the main video stream playback
+    // addRemoteStreamMiniView(RTC.remoteStreams[mainStreamId]); // send the main video stream to a container
+    // const parentCircle = jQuery(containerId).parent();
+    // if (parentCircle.hasClass('avatar-circle')) {
+    //   parentCircle.find('img').show();
+    // }
+    // jQuery(containerId).empty().remove(); // remove the stream's miniView container
+    // RTC.remoteStreams[streamId].stop() // stop the container's video stream playback
+    // RTC.remoteStreams[streamId].play('video-canvas'); // play the remote stream as the full screen video
+    // mainStreamId = streamId; // set the container stream id as the new main stream id
   });
 }
 window.mainStreamId = "";
@@ -345,53 +354,44 @@ function initAgoraEvents() {
 
   // when Remote Stream is received:
   RTC.client.cam1.on('stream-subscribed', function (evt) {
-    var remoteStream = evt.stream;
-    var remoteId = remoteStream.getId();
+    const remoteStream = evt.stream;
+    const remoteId = remoteStream.getId();
     RTC.remoteStreams[remoteId] = remoteStream;
     // console.log('Stream subscribed:', remoteId);
     console.info('===> STREAM-SUBSCRIBED', remoteId)
-    const callbackRemoteStreams = function() {
-      console.info("Subscribe remote stream successfully: " + remoteId);
 
-      if (!window.isMainHost) {
-        if (window.hostID<100) {
-          window.hostID += 100; // simple validation from the initial users in WP
-        }
 
-        if (remoteId===window.hostID || remoteId===(window.hostID*window.hostID)) {
-          // in this case, this is one of the streams from the main host
-        } else {
-          // this stream is from another student.
-        }
-      } else {
-        // I'm the host but i'm receiving streams from students
+    if (!window.isMainHost) {
+      if (window.hostID<100) {
+        window.hostID += 100; // simple validation from the initial users in WP
       }
 
-
-      // Play stream on the main canvas
-      console.log('PAINTING REMOTE:', remoteStream);
-      if( jQuery('#video-canvas').is(':empty') ) { 
-        mainStreamId = remoteId;
-        remoteStream.play('video-canvas');
+      // i'm student but receiving main host stream:
+      if (remoteId===window.hostID || remoteId===(window.hostID*window.hostID)) {
+        const hostVideoDiv = document.createElement('div');
+        hostVideoDiv.id = 'host-video-' + remoteId;
+        hostVideoDiv.classList.add('videoItem');
+        document.getElementById('main-video-container').appendChild(hostVideoDiv);
+        remoteStream.play('host-video-' + remoteId);
       } else {
+        // this stream is from another student.
+        // hostVideoDiv.classList.add('student-video');
         addRemoteStreamMiniView(remoteStream);
       }
-    }
-    
-    const avatarsSlider = jQuery('#slick-avatars');
-    if (avatarsSlider.length>0) {
-      window.AGORA_UTILS.agora_getUserAvatar(remoteId, function(gravatar) {
-        // console.log('callback gravatar:', gravatar);
-        const url = gravatar.avatar.url;
-        // const index = remoteId;
-        const template = '<div id="uid-'+remoteId+'"><div class="avatar-circle"><img src="'+url+'" alt="gravatar" /></div></div>';
-        jQuery('#slick-avatars').slick('slickAdd', template);
-
-        callbackRemoteStreams();
-      });
     } else {
-      callbackRemoteStreams();
+      // I'm the host, so, i'm receiving streams from students
+      addRemoteStreamMiniView(remoteStream);
     }
+
+
+    // Play stream on the main canvas
+    console.log('PAINTING REMOTE:', remoteId);
+    // if( jQuery('#video-canvas').is(':empty') ) { 
+    //   mainStreamId = remoteId;
+    //   remoteStream.play('video-canvas');
+    // } else {
+    //   addRemoteStreamMiniView(remoteStream);
+    // }
 
   });
 
@@ -407,25 +407,30 @@ function initAgoraEvents() {
     }
     console.log('peer-leave:', evt);
     var streamId = evt.stream.getId(); // the the stream id
-    jQuery('#uid-'+streamId).remove();
+    if (!isMainHost) {
+      if (remoteId===window.hostID || remoteId===(window.hostID*window.hostID)) {
+        jQuery('#host-video-'+streamId).remove();
+      }
+    }
 
     if (RTC.remoteStreams[streamId] !== undefined) {
       RTC.remoteStreams[streamId].stop(); // stop playing the feed
       delete RTC.remoteStreams[streamId]; // remove stream from list
-      if (streamId == mainStreamId) {
-        var streamIds = Object.keys(RTC.remoteStreams);
-        var randomId = streamIds[Math.floor(Math.random()*streamIds.length)]; // select from the remaining streams
-        if (RTC.remoteStreams[randomId]) {
-          RTC.remoteStreams[randomId].stop(); // stop the stream's existing playback
-          var remoteContainerID = '#' + randomId + '_container';
-          jQuery(remoteContainerID).empty().remove(); // remove the stream's miniView container
-          RTC.remoteStreams[randomId].play('video-canvas'); // play the random stream as the main stream
-          mainStreamId = randomId; // set the new main remote stream
-        }
-      } else {
-        var remoteContainerID = '#' + streamId + '_container';
-        jQuery(remoteContainerID).empty().remove(); // 
-      }
+      jQuery('#remote-container-'+streamId).remove();
+      // if (streamId == mainStreamId) {
+      //   var streamIds = Object.keys(RTC.remoteStreams);
+      //   var randomId = streamIds[Math.floor(Math.random()*streamIds.length)]; // select from the remaining streams
+      //   if (RTC.remoteStreams[randomId]) {
+      //     RTC.remoteStreams[randomId].stop(); // stop the stream's existing playback
+      //     var remoteContainerID = '#' + randomId + '_container';
+      //     jQuery(remoteContainerID).empty().remove(); // remove the stream's miniView container
+      //     RTC.remoteStreams[randomId].play('video-canvas'); // play the random stream as the main stream
+      //     mainStreamId = randomId; // set the new main remote stream
+      //   }
+      // } else {
+      //   var remoteContainerID = '#' + streamId + '_container';
+      //   // jQuery(remoteContainerID).empty().remove(); // 
+      // }
     }
   });
 

@@ -1,68 +1,89 @@
 <?php $current_path = plugins_url('wp-agora-io') . '/public'; ?>
 <!DOCTYPE html>
-<html>
+<html <?php language_attributes(); ?>>
 <head>
   <meta charset="utf-8">
   <meta http-equiv="X-UA-Compatible" content="IE=edge">
   <?php wp_head() ?>
 </head>
-<body class="agora custom-background-image">
-  <div class="agora-fullscreen-container controls-bottom window-mode gradient-4">
+<body <?php body_class(); ?>>
 
-    <div class="main-video-screen" id="full-screen-video">
-      <div id="video-canvas"></div>
+<!-- Bootstrap row -->
+<div class="row agora" id="body-row">
+    <!-- Sidebar -->
+    <div id="sidebar-container" class="sidebar-expanded"><!-- d-* hiddens the Sidebar in smaller devices. Its itens can be kept on the Navbar 'Menu' -->
+        <!-- Bootstrap List Group -->
+        <ul class="list-group">
+            <!-- Menu with submenu -->
+            <a id="video-btn" href="#video" data-toggle="collapse" aria-expanded="false" class="bg-dark list-group-item list-group-item-action flex-column align-items-start d-flex">
+                <div class="w-100 justify-content-start align-items-center">
+                    <span id="video-icon" class="fas fa-video fa-fw mr-3"></span> 
+                    <!--<input type="checkbox" data-onstyle="outline-primary" data-offstyle="outline-primary" checked data-toggle="toggle" data-size="xs">-->
+                    <span class="menu-collapsed">Video</span>
+                </div>
+            </a>
+            <a id="mic-btn" href="#audio" data-toggle="collapse" aria-expanded="false" class="bg-dark list-group-item list-group-item-action flex-column align-items-start d-flex">
+                <div class="w-100 justify-content-start align-items-center">
+                    <span id="mic-icon" class="fas fa-microphone fa-fw mr-3"></span> 
+                    
+                    <span class="menu-collapsed">Audio</span>
+                </div>
+            </a>
+            <a id="exit-btn" href="#exit" data-toggle="collapse" aria-expanded="false" class="bg-info list-group-item list-group-item-action flex-column align-items-start d-flex" title="Finish Call">
+                <div class="w-100 justify-content-start align-items-center">
+                    <span class="fas fa-phone-slash fa-fw mr-3"></span> 
+                    
+                    <span class="menu-collapsed">Finish Call</span>
+                </div>
+            </a>
+            <a id="users-btn" href="#" class="bg-dark list-group-item list-group-item-action d-flex" title="Participants List">
+                <div class="w-100 justify-content-start align-items-center">
+                    <span class="fas fa-users fa-fw mr-3"></span>
+                    
+                    <span class="menu-collapsed"> Participants <span class="badge badge-pill badge-primary ml-2">5</span></span>
+                </div>
+            </a>
+            <a id="cam-settings-btn" data-toggle="modal" data-target="#camSettingsModal" href="#" class="bg-dark list-group-item list-group-item-action d-flex" title="Participants List">
+                <div class="w-100 justify-content-start align-items-center">
+                    <span class="fas fa-camera fa-fw mr-3"></span>
+                    
+                    <span class="menu-collapsed"> Camera Settings <span class="badge badge-pill badge-primary ml-2">5</span></span>
+                </div>
+            </a>
+            <!-- Separator without title -->
+            <!-- <li class="list-group-item sidebar-separator menu-collapsed"></li> -->
+            <!-- /END Separator -->
+            <a href="#" data-toggle="sidebar-colapse" class="bg-dark list-group-item list-group-item-action d-flex align-items-center">
+                <div class="d-flex w-100 justify-content-start align-items-center">
+                    <span id="collapse-icon" class="mr-3 fas fa-angle-double-right"></span>
+                    <span id="collapse-text" class="menu-collapsed">Collapse</span>
+                    
 
-      <div id="rejoin-container" class="rejoin-container" style="display: none">
-        <button id="rejoin-btn" class="btn btn-primary btn-lg" type="button">
-          <span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
-          <?php _e('Rejoin to this channel', 'agoraio'); ?>
-        </button>
-      </div>
+                </div>
+            </a>
+        </ul><!-- List Group END-->
+    </div><!-- sidebar-container END -->
 
-      <div id="buttons-container" class="mt-3">
-        <div class="control-btn">
-          <button id="mic-btn" type="button" class="btn btn-block btn-dark btn-xs">
-            <i id="mic-icon" class="fas fa-microphone"></i>
-          </button>
+    <!-- MAIN -->
+    <div class="col d-block px-0">
+        
+        <div class="card px-0 ">
+          <h4 class="card-header"> <?php wp_title(); ?> </h4>
+          <div id="main-video-container" class="videoContainer card-body form-row justify-content-center mx-0 d-flex align-items-center" id="card-body">
+            <!-- main video goes here -->
+          </div>
         </div>
-        <div class="control-btn main-btn">
-          <button id="exit-btn"  type="button" class="btn btn-block btn-danger btn-xs">
-            <i id="exit-icon" class="fas fa-phone-slash"></i>
-          </button>
+        <div class="studentsRow demo">
+          <div class="students-title"> Participants </div>
+          <div id="remote-streams" class="w-100 h-100">
+            <!-- Students video goes here -->
+          </div>
         </div>
-        <div class="control-btn">
-          <button id="video-btn"  type="button" class="btn btn-block btn-dark btn-xs">
-            <i id="video-icon" class="fas fa-video"></i>
-          </button>
-        </div>
+    
 
-        <div class="camSettings">
-          <button id="cam-settings-btn" type="button" data-toggle="modal" data-target="#camSettingsModal">
-            <i id="cam-settings-icon" class="fas fa-camera"></i>
-          </button>
-        </div>
-      </div>
-
-    </div>
-
-    <div class="audience-container" id="audience-avatars">
-      <div class="avatar-circle local" id="local-stream-container">
-        <div id="mute-overlay">
-          <i id="mic-icon" class="fas fa-microphone-slash"></i>
-        </div>
-        <div id="no-local-video" class="text-center">
-          <i id="user-icon" class="fas fa-user"></i>
-        </div>
-      </div>
-
-      <div class="remote-users">
-        <div class="slick-avatars" id="slick-avatars">
-          
-        </div>
-      </div>
-
-    </div>
-  </div>
+    </div><!-- Main Col END -->
+    
+</div><!-- body-row END -->
 
   <!-- Cam Settings Modal -->
 <div class="modal fade" id="camSettingsModal" tabindex="-1" role="dialog" aria-labelledby="camSettingsModalLabel" aria-hidden="true">
@@ -127,8 +148,35 @@
       window.hostID = <?php echo $channel->get_properties()['host']; ?>;
 
       window.AGORA_COMMUNICATION_UI.fullscreenInit();
+
+      // Hide submenus
+      jQuery('#body-row .collapse').collapse('hide'); 
+
+      // Collapse/Expand icon
+      jQuery('#collapse-icon').addClass('fa-angle-double-left'); 
+
+      // Collapse click
+      jQuery('[data-toggle=sidebar-colapse]').click(function() {
+        sidebarCollapse();
+      });
+
+      sidebarCollapse();
     });
 
+    function sidebarCollapse() {
+      jQuery('.menu-collapsed').toggleClass('d-none');
+      jQuery('.sidebar-submenu').toggleClass('d-none');
+      jQuery('.submenu-icon').toggleClass('d-none');
+      jQuery('#sidebar-container').toggleClass('sidebar-expanded sidebar-collapsed');
+      
+      // Treating d-flex/d-none on separators with title
+      var SeparatorTitle = jQuery('.sidebar-separator-title');
+      if ( SeparatorTitle.hasClass('d-flex') ) {
+          SeparatorTitle.removeClass('d-flex');
+      } else {
+          SeparatorTitle.addClass('d-flex');
+      }
+    }
 
     // use tokens for added security
     function agoraGenerateToken() {

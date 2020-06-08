@@ -20,11 +20,11 @@
 }
 
 
+
 body .btn:focus{ 
   outline: none !important;
   box-shadow:none !important;
 }
-
 body .agora {
   position: relative;
 }
@@ -166,20 +166,12 @@ body .agora {
   margin: 0;
 }
 
-#local-video-cam1, #local-video-cam2 {
-  position: relative;
-  z-index: 1;
-  height: 20vh;
-  width: 280px;
-  float: left;
-}
 
 .remote-video {
   position: absolute;
   z-index: 1;
   height: 100% !important;
-  width: 80%;
-  max-width: 500px;
+  width: 100%;
 }
 
 #mute-overlay {
@@ -406,7 +398,7 @@ body .agora {
 /** ====================================
  *        Communication Styles
  ** ==================================*/
-.agora.agora-communication {
+.agora-communication {
   position: relative;
   background-color: #dedede;
   width: 100%;
@@ -441,36 +433,15 @@ body .agora {
   background: #2f5e90;
 }
 
-#local-stream-container {
-  position: relative; 
-  display: flex;
+/**
+ * NEW Agora Classsroom
+ **/
+.admin-bar .agora-classroom #sidebar-container {
+  min-height: calc(100vh - 32px - 113px);
 }
 
-.remote-stream-container {
-  display: inline-block;
-}
-
-#remote-streams {
-  height: 100%;
-}
-
-
-
-.user_gravatar_circle {
-  border: 1px solid #dedede;
-  border-radius: 50%;
-  overflow: hidden;
-  max-width: 168px;
-}
-
-.user_gravatar_wrapper {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background: black;
-  width: 100%;
-  height: 100%;
-  position: absolute;
+.admin-bar .agora-classroom .card {
+  height: calc(100vh - 150px - 32px - 113px);
 }
 
 .hidden {

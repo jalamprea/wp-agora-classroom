@@ -129,10 +129,18 @@ window.AGORA_COMMUNICATION_UI = {
     if (!localStream.userMuteVideo) {
       localStream.muteVideo(); // disable the local video
       window.AGORA_UTILS.toggleVisibility("#no-local-video", true); // show the user icon when video is disabled
+
+      if (isMainHost && availableCams.length>1) {
+        RTC.localStreams.cam2.stream.muteVideo();
+      }
     } else {
       localStream.unmuteVideo(); // enable the local video
       window.AGORA_UTILS.toggleVisibility("#no-local-video", false); // hide the user icon when video is enabled
       // window.AGORA_COMMUNICATION_UI.logCameraDevices();
+
+      if (isMainHost && availableCams.length>1) {
+        RTC.localStreams.cam2.stream.unmuteVideo();
+      }
     }
   },
 

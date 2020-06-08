@@ -1,55 +1,85 @@
 <?php $current_user = wp_get_current_user(); ?>
 <!-- This file should primarily consist of HTML with a little bit of PHP. -->
-<div class="agora agora-communication">
-  <div class="container-fluid p-0">
-    <div id="main-container" class="controls-top">
-      <div id="full-screen-video">
-        <div id="video-canvas"></div>
+<div class="agora-classroom">
 
-        <div id="buttons-container" class="row justify-content-center mt-3">
-          <div class="col-md-2 text-center">
-            <button id="mic-btn" type="button" class="btn btn-block btn-dark btn-xs">
-              <i id="mic-icon" class="fas fa-microphone"></i>
-            </button>
-          </div>
-          <div class="col-md-2 text-center">
-            <button id="video-btn"  type="button" class="btn btn-block btn-dark btn-xs">
-              <i id="video-icon" class="fas fa-video"></i>
-            </button>
-          </div>
-          <div class="col-md-2 text-center">
-            <button id="exit-btn"  type="button" class="btn btn-block btn-danger btn-xs">
-              <i id="exit-icon" class="fas fa-phone-slash"></i>
-            </button>
-          </div>
-        </div>
+  <!-- Bootstrap row -->
+  <div class="row agora" id="body-row">
+      <!-- Sidebar -->
+      <div id="sidebar-container" class="sidebar-expanded"><!-- d-* hiddens the Sidebar in smaller devices. Its itens can be kept on the Navbar 'Menu' -->
+          <!-- Bootstrap List Group -->
+          <ul class="list-group">
+              <!-- Separator with title -->
+              <li class="list-group-item sidebar-separator-title text-muted d-flex align-items-center menu-collapsed">
+                  <small>Video Controls</small>
+              </li>
+              <!-- /END Separator -->
+              <!-- Menu with submenu -->
+              <a href="#submenu1" data-toggle="collapse" aria-expanded="false" class="bg-dark list-group-item list-group-item-action flex-column align-items-start">
+                  <div class="d-flex w-100 justify-content-start align-items-center">
+                      <span class="fas fa-video fa-fw mr-3"></span> 
+                      <!--<input type="checkbox" data-onstyle="outline-primary" data-offstyle="outline-primary" checked data-toggle="toggle" data-size="xs">-->
+                      <span class="menu-collapsed">Video
+                       
+                        </span>
+                  </div>
+              </a>
+              <a href="#submenu1" data-toggle="collapse" aria-expanded="false" class="bg-dark list-group-item list-group-item-action flex-column align-items-start">
+                  <div class="d-flex w-100 justify-content-start align-items-center">
+                      <span class="fas fa-microphone fa-fw mr-3"></span> 
+                      
+                      <span class="menu-collapsed">Audio</span>
+                  </div>
+              </a>
+       
+              <!-- Separator with title -->
+              <li class="list-group-item sidebar-separator-title text-muted d-flex align-items-center menu-collapsed">
+                  <small>OPTIONS</small>
+              </li>
+              <!-- /END Separator -->
+              <a href="#" class="bg-dark list-group-item list-group-item-action">
+                  <div class="d-flex w-100 justify-content-start align-items-center">
+                      <span class="fas fa-users fa-fw mr-3"></span>
+                      
+                      <span class="menu-collapsed"> Participants <span class="badge badge-pill badge-primary ml-2">5</span></span>
+                  </div>
+              </a>
+              <!-- Separator without title -->
+              <li class="list-group-item sidebar-separator menu-collapsed"></li>            
+              <!-- /END Separator -->
+              <a href="#" data-toggle="sidebar-colapse" class="bg-dark list-group-item list-group-item-action d-flex align-items-center">
+                  <div class="d-flex w-100 justify-content-start align-items-center">
+                      <span id="collapse-icon" class="mr-3 fas fa-angle-double-right"></span>
+                      <span id="collapse-text" class="menu-collapsed">Collapse</span>
+                      
 
-        <div id="rejoin-container" class="rejoin-container" style="display: none">
-          <button id="rejoin-btn" class="btn btn-primary btn-lg" type="button">
-            <span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
-            <?php _e('Rejoin to this channel', 'agoraio'); ?>
-          </button>
-        </div>
+                  </div>
+              </a>
+          </ul><!-- List Group END-->
+      </div><!-- sidebar-container END -->
 
-        <div id="lower-video-bar" class="row mb-0">
-          <div id="remote-streams-container" class="container col-9 ml-1">
-            <div id="remote-streams" class="row">
-              <!-- insert remote streams dynamically -->
-            </div>
+      <!-- MAIN -->
+      <div class="col d-block px-0">
+          
+          <div class="card px-0 ">
+            <h4 class="card-header"> <?php wp_title(); ?> </h4>
+              <div class="videoContainer card-body form-row justify-content-center mx-0 d-flex align-items-center" id="card-body">
+                <div class="align-middle videoItem" id="videoItem1">1</div>
+                <div class="align-middle videoItem" id="videoItem2" style="display: none">2</div>
+                  
+              </div>
           </div>
-          <div id="local-stream-container" class="col p-0">
-            <div id="mute-overlay" class="col">
-              <i id="mic-icon" class="fas fa-microphone-slash"></i>
-            </div>
-            <div id="no-local-video" class="col text-center">
-              <i id="user-icon" class="fas fa-user"></i>
-            </div>
+          <div class="studentsSlider demo">
+            <div class="students-title"> Participants </div>
           </div>
-        </div>
+         
+          <div class="row">
+          </div>
+      
 
-      </div>
-    </div>
-  </div>
+      </div><!-- Main Col END -->
+      
+  </div><!-- body-row END -->
+
     <!-- Cam Settings Modal -->
   <div class="modal fade" id="camSettingsModal" tabindex="-1" role="dialog" aria-labelledby="camSettingsModalLabel" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered" role="document">
@@ -108,13 +138,41 @@
       window.isMainHost = <?php echo $channel->get_properties()['host']==$current_user->ID ? 'true' : 'false'; ?>;
       window.agoraMode = 'communication';
 
-      window.AGORA_COMMUNICATION_UI.calculateVideoScreenSize();
-      window.AGORA_COMMUNICATION_CLIENT.initClientAndJoinChannel(window.agoraAppId, window.channelName);
+      // window.AGORA_COMMUNICATION_UI.calculateVideoScreenSize();
+      // window.AGORA_COMMUNICATION_CLIENT.initClientAndJoinChannel(window.agoraAppId, window.channelName);
+
+      // Hide submenus
+      jQuery('#body-row .collapse').collapse('hide'); 
+
+      // Collapse/Expand icon
+      jQuery('#collapse-icon').addClass('fa-angle-double-left'); 
+
+      // Collapse click
+      jQuery('[data-toggle=sidebar-colapse]').click(function() {
+        sidebarCollapse();
+      });
+
+      sidebarCollapse();
     });
 
     window.AGORA_TOKEN_UTILS = {
       agoraGenerateToken: agoraGenerateToken
     };
+
+    function sidebarCollapse() {
+      jQuery('.menu-collapsed').toggleClass('d-none');
+      jQuery('.sidebar-submenu').toggleClass('d-none');
+      jQuery('.submenu-icon').toggleClass('d-none');
+      jQuery('#sidebar-container').toggleClass('sidebar-expanded sidebar-collapsed');
+      
+      // Treating d-flex/d-none on separators with title
+      var SeparatorTitle = jQuery('.sidebar-separator-title');
+      if ( SeparatorTitle.hasClass('d-flex') ) {
+          SeparatorTitle.removeClass('d-flex');
+      } else {
+          SeparatorTitle.addClass('d-flex');
+      }
+    }
 
     // use tokens for added security
     function agoraGenerateToken() {

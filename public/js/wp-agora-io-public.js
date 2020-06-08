@@ -40,7 +40,7 @@ window.AGORA_UTILS = {
   },
 
   toggleBtn: function (btn){
-    btn.toggleClass('btn-dark').toggleClass('btn-danger');
+    btn.toggleClass('bg-dark').toggleClass('bg-danger');
   },
 
   toggleVisibility: function (elementID, visible) {
