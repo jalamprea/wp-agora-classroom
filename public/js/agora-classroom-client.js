@@ -121,6 +121,10 @@ async function initClientAndJoinChannel(agoraAppId, channelName) {
   }
   initAgoraEvents();
 
+  if (isMainHost) {
+    jQuery('#cam-settings-btn').show();
+  }
+
   // Screenshare Client:
   RTC.client.screen = AgoraRTC.createClient({mode: 'rtc', codec: 'vp8'});
 }

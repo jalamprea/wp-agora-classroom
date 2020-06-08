@@ -246,7 +246,7 @@ window.AGORA_COMMUNICATION_UI = {
     }
 
     const size = resizeVideo(true);
-    jQuery(window).smartresize(resizeVideo);
+    // jQuery(window).smartresize(resizeVideo);
 
     const sliderSize = size.width - 200;
     const slidesToShow = Math.floor(sliderSize / 110);
@@ -272,10 +272,7 @@ window.AGORA_COMMUNICATION_UI = {
       }]
     };
     
-    jQuery('#slick-avatars').slick(window.slickSettings);
-    // jQuery('.slick-avatars').on('breakpoint', function(event, slick, breakpoint) {
-    //   console.log('breakpoint:', breakpoint)
-    // })
+    // jQuery('#slick-avatars').slick(window.slickSettings);
     window.AGORA_COMMUNICATION_CLIENT.initClientAndJoinChannel(window.agoraAppId, window.channelName);
   }
 }

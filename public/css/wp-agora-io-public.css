@@ -436,6 +436,14 @@ body .agora {
 /**
  * NEW Agora Classsroom
  **/
+.agora-classroom #sidebar-container {
+  min-height: calc(100vh - 113px);
+}
+
+.agora-classroom .card {
+  height: calc(100vh - 150px - 113px);
+}
+
 .admin-bar .agora-classroom #sidebar-container {
   min-height: calc(100vh - 32px - 113px);
 }

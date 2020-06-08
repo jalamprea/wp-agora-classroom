@@ -69,7 +69,7 @@
         
         <div class="card px-0 ">
           <h4 class="card-header"> <?php wp_title(); ?> </h4>
-          <div id="main-video-container" class="videoContainer card-body form-row justify-content-center mx-0 d-flex align-items-center" id="card-body">
+          <div id="main-video-container" class="videoContainer card-body form-row justify-content-center mx-0 d-flex align-items-center">
             <!-- main video goes here -->
           </div>
         </div>
