@@ -69,6 +69,39 @@ html { height: auto !important; }
   padding-left: 10px;
 }
 
+.participants {
+    position: absolute;
+    min-width: 200px;
+    min-height: 330px;
+    z-index: 1;
+    background-color: #444;
+    display: block;
+    color: white;
+    margin-top: 164px;
+    box-shadow: 4px 4px 10px 0px #4a4a4a;
+}
+.participants p {
+  color: #dedede;
+}
+.participants .fa,
+.participants .fas { cursor: pointer; }
+.participants ul li {
+    list-style: none;
+    padding: 10px;
+    background-color: #343A40;
+    /*margin: 5px 0px 5px 0px;*/
+    border-bottom: solid 1px #333333;
+    
+}
+.participants ul li:hover{
+    background-color: #23272B;
+}
+.participants ul {
+    margin: 0;
+    padding: 0;
+}
+.participants ul li .fas { color: #b7b7b7;  }
+.participants ul li .fas:hover { color: white; }
 
 .videoItem {
   background-color: black;

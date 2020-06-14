@@ -22,7 +22,8 @@ window.RTC = {
       stream: {}
     }
   },
-  remoteStreams: {} // remote streams obj struct [id : stream] 
+  remoteStreams: {}, // remote streams obj struct [id : stream] 
+  participants: {}
 };
 
 window.screenShareActive = false;
@@ -94,7 +95,7 @@ async function countCameras() {
 
 async function initClientAndJoinChannel(agoraAppId, channelName) {
   // https://docs.agora.io/en/faq/API%20Reference/web/modules/agorartc.logger.html
-  // AgoraRTC.Logger.setLogLevel(AgoraRTC.Logger.WARNING);
+  AgoraRTC.Logger.setLogLevel(AgoraRTC.Logger.WARNING);
 
   // init Agora SDK per each client/cam
   const initCam = function(indexCam, cb) {
@@ -107,26 +108,33 @@ async function initClientAndJoinChannel(agoraAppId, channelName) {
     });
   };
 
-  const cams = await countCameras();
-  if (cams>0) {
-    console.log('=== Starting client 1')
-    initCam("cam1", function() {
+  if (window.userID!==0) {
+    const cams = await countCameras();
+    if (cams>0) {
+      console.log('=== Starting client 1')
+      initCam("cam1", function() {
 
-      if (cams>1 && window.isMainHost) {
-        console.log('=== Starting client 2')
-        initCam("cam2");
-      }
+        if (cams>1 && window.isMainHost) {
+          console.log('=== Starting client 2')
+          initCam("cam2");
+        }
 
-    });
+      });
+    }
+    initAgoraEvents();
+
+    if (isMainHost) {
+      jQuery('#cam-settings-btn').show();
+    }
+
+    // Screenshare Client:
+    RTC.client.screen = AgoraRTC.createClient({mode: 'rtc', codec: 'vp8'});
+  } else {
+    // TODO: show message for non-logged users
+    jQuery('#non-logged-msg').show();
+    jQuery('#cam-settings-btn').remove();
   }
-  initAgoraEvents();
 
-  if (isMainHost) {
-    jQuery('#cam-settings-btn').show();
-  }
-
-  // Screenshare Client:
-  RTC.client.screen = AgoraRTC.createClient({mode: 'rtc', codec: 'vp8'});
 }
 
 // join a channel
@@ -136,14 +144,15 @@ function agoraJoinChannel(channelName, indexCam, cb) {
   const callback = function(err, token) {
     if (err) {
       console.error('Token Error:', err);
-      alert('Error generating your Access Token, pease reload this page.');
+      alert('Your access token could not be generated. This page will be reloaded!');
+      window.location.reload(true);
 
-      const rejoinBtn =jQuery('#rejoin-btn');
-      if (rejoinBtn.prop('disabled')) {
-        rejoinBtn.prop('disabled', false);
-        rejoinBtn.find('.spinner-border').hide();
-      }
-      return;
+      // const rejoinBtn =jQuery('#rejoin-btn');
+      // if (rejoinBtn.prop('disabled')) {
+      //   rejoinBtn.prop('disabled', false);
+      //   rejoinBtn.find('.spinner-border').hide();
+      // }
+      // return;
     }
     RTC.client[indexCam].join(token, channelName, userId, function(uid) {
       AgoraRTC.Logger.info("User " + uid + " join channel successfully");
@@ -155,11 +164,24 @@ function agoraJoinChannel(channelName, indexCam, cb) {
         AgoraRTC.Logger.error("[ERROR] : join channel failed", errorJoin);
         /* if (err==='UID_CONFLICT') { } */
     });
+
+    if (indexCam==='cam1') {
+      
+      window.AGORA_UTILS.agora_getUserAvatar(window.userID, function(gravatar) {
+        // console.log('callback gravatar:', gravatar);
+        const url = gravatar.avatar.url;
+        RTC.participants[userId] = {
+          url: url,
+          user: gravatar.user
+        }
+        AGORA_COMMUNICATION_UI.updateParticipants();
+      });
+    }
   };
 
   let userId = window.userID || 0;
   if (indexCam==='cam2') {
-    userId *= userId;
+    userId *= (userId + 123);
   }
   AGORA_SCREENSHARE_UTILS.agora_generateAjaxToken(callback, userId);
 
@@ -338,7 +360,7 @@ window.mainStreamId = "";
 function initAgoraEvents() {
   // when my local stream is published
   RTC.client.cam1.on('stream-published', function (evt) {
-    console.info("Publish local stream successfully");
+    console.info("Publish local stream successfully", evt);
   });
 
   // connect remote streams
@@ -367,11 +389,11 @@ function initAgoraEvents() {
 
     if (!window.isMainHost) {
       if (window.hostID<100) {
-        window.hostID += 100; // simple validation from the initial users in WP
+        // window.hostID += 100; // simple validation from the initial users in WP
       }
 
       // i'm student but receiving main host stream:
-      if (remoteId===window.hostID || remoteId===(window.hostID*window.hostID)) {
+      if (remoteId===window.hostID || remoteId===(window.hostID * (window.hostID + 123))) {
         const hostVideoDiv = document.createElement('div');
         hostVideoDiv.id = 'host-video-' + remoteId;
         hostVideoDiv.classList.add('videoItem');
@@ -397,6 +419,20 @@ function initAgoraEvents() {
     //   addRemoteStreamMiniView(remoteStream);
     // }
 
+
+    // avoid render the second host camera:
+    if(remoteId!==(window.hostID * (window.hostID + 123))) {
+      window.AGORA_UTILS.agora_getUserAvatar(remoteId, function(gravatar) {
+        // console.log('callback gravatar:', gravatar);
+        const url = gravatar.avatar.url;
+        RTC.participants[remoteId] = {
+          url: url,
+          user: gravatar.user
+        }
+        AGORA_COMMUNICATION_UI.updateParticipants();
+      });
+    }
+
   });
 
   RTC.client.cam1.on('stream-removed', function(evt) {
@@ -410,9 +446,10 @@ function initAgoraEvents() {
       return false;
     }
     console.log('peer-leave:', evt);
+    const remoteId = evt.stream.getId();
     var streamId = evt.stream.getId(); // the the stream id
     if (!isMainHost) {
-      if (remoteId===window.hostID || remoteId===(window.hostID*window.hostID)) {
+      if (remoteId===window.hostID || remoteId===(window.hostID * (window.hostID + 123))) {
         jQuery('#host-video-'+streamId).remove();
       }
     }
@@ -436,6 +473,11 @@ function initAgoraEvents() {
       //   // jQuery(remoteContainerID).empty().remove(); // 
       // }
     }
+
+    RTC.participants[streamId] = null;
+    delete RTC.participants[streamId];
+    window.AGORA_COMMUNICATION_UI.updateParticipants();
+
   });
 
   // show mute icon whenever a remote has muted their mic

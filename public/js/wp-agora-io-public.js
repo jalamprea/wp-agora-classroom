@@ -52,11 +52,11 @@ window.AGORA_UTILS = {
   },
 
   agora_getUserAvatar: function (user_id, cb) {
-    var uid = String(user_id).substring(3);
-    console.log('Real WP user ID:', uid)
+    // var uid = String(user_id).substring(3);
+    // console.log('Real WP user ID:', user_id)
     var params = {
       action: 'get_user_avatar', // wp ajax action
-      uid, // needed to get the avatar from the WP user
+      uid: user_id, // needed to get the avatar from the WP user
     };
     window.AGORA_UTILS.agoraApiRequest(ajax_url, params).done(function(data) {
       if (cb) {

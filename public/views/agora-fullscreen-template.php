@@ -19,44 +19,42 @@
                 <div class="w-100 justify-content-start align-items-center">
                     <span id="video-icon" class="fas fa-video fa-fw mr-3"></span> 
                     <!--<input type="checkbox" data-onstyle="outline-primary" data-offstyle="outline-primary" checked data-toggle="toggle" data-size="xs">-->
-                    <span class="menu-collapsed">Video</span>
+                    <span class="menu-collapsed"><?php _e('Video', 'agoraio'); ?></span>
                 </div>
             </a>
             <a id="mic-btn" href="#audio" data-toggle="collapse" aria-expanded="false" class="bg-dark list-group-item list-group-item-action flex-column align-items-start d-flex">
                 <div class="w-100 justify-content-start align-items-center">
                     <span id="mic-icon" class="fas fa-microphone fa-fw mr-3"></span> 
                     
-                    <span class="menu-collapsed">Audio</span>
+                    <span class="menu-collapsed"><?php _e('Audio', 'agoraio'); ?></span>
                 </div>
             </a>
             <a id="exit-btn" href="#exit" data-toggle="collapse" aria-expanded="false" class="bg-info list-group-item list-group-item-action flex-column align-items-start d-flex" title="Finish Call">
                 <div class="w-100 justify-content-start align-items-center">
                     <span class="fas fa-phone-slash fa-fw mr-3"></span> 
                     
-                    <span class="menu-collapsed">Finish Call</span>
+                    <span class="menu-collapsed"><?php _e('Finish call', 'agoraio'); ?></span>
                 </div>
             </a>
             <a id="users-btn" href="#" class="bg-dark list-group-item list-group-item-action d-flex" title="Participants List">
                 <div class="w-100 justify-content-start align-items-center">
                     <span class="fas fa-users fa-fw mr-3"></span>
                     
-                    <span class="menu-collapsed"> Participants <span class="badge badge-pill badge-primary ml-2">5</span></span>
+                    <span class="menu-collapsed"> <?php _e('Participants', 'agoraio'); ?> <span class="badge badge-pill badge-primary ml-2">0</span></span>
                 </div>
             </a>
             <a id="cam-settings-btn" data-toggle="modal" data-target="#camSettingsModal" href="#" class="bg-dark list-group-item list-group-item-action d-flex" title="Participants List">
                 <div class="w-100 justify-content-start align-items-center">
                     <span class="fas fa-camera fa-fw mr-3"></span>
                     
-                    <span class="menu-collapsed"> Camera Settings <span class="badge badge-pill badge-primary ml-2">5</span></span>
+                    <span class="menu-collapsed"> <?php _e('Caemra Settings', 'agoraio'); ?> </span>
                 </div>
             </a>
-            <!-- Separator without title -->
-            <!-- <li class="list-group-item sidebar-separator menu-collapsed"></li> -->
             <!-- /END Separator -->
             <a href="#" data-toggle="sidebar-colapse" class="bg-dark list-group-item list-group-item-action d-flex align-items-center">
                 <div class="d-flex w-100 justify-content-start align-items-center">
                     <span id="collapse-icon" class="mr-3 fas fa-angle-double-right"></span>
-                    <span id="collapse-text" class="menu-collapsed">Collapse</span>
+                    <span id="collapse-text" class="menu-collapsed"><?php _e('Collapse', 'agoraio'); ?></span>
                     
 
                 </div>
@@ -66,15 +64,30 @@
 
     <!-- MAIN -->
     <div class="col d-block px-0">
+
+      <div class="participants d-none">
+        <p class="py-2 px-3 my-0">
+            <?php _e('Participants', 'agoraio'); ?>
+            <i class="fa fa-window-close float-right mt-1 close-icon" aria-hidden="true"></i>
+        </p>
+        <ul id="participants-list">
+            <li class="">
+                <img src="" alt="image" class="img-fluid rounded-circle" width="35"/>
+                <span class="ml-2">영희영희</span>
+                <span class="fas fa-microphone fa-fw my-2 pl-5 pr-4 float-right"></span>
+            </li>
+        </ul>
+    </div>
         
         <div class="card px-0 ">
           <h4 class="card-header"> <?php wp_title(); ?> </h4>
           <div id="main-video-container" class="videoContainer card-body form-row justify-content-center mx-0 d-flex align-items-center">
             <!-- main video goes here -->
+            <h2 id="non-logged-msg" style="display: none"><?php _e('Log in to join this channel', 'agoraio'); ?></h2>
           </div>
         </div>
         <div class="studentsRow demo">
-          <div class="students-title"> Participants </div>
+          <div class="students-title"> <?php _e('Participants', 'agoraio'); ?> </div>
           <div id="remote-streams" class="w-100 h-100">
             <!-- Students video goes here -->
           </div>
@@ -85,12 +98,13 @@
     
 </div><!-- body-row END -->
 
+
   <!-- Cam Settings Modal -->
 <div class="modal fade" id="camSettingsModal" tabindex="-1" role="dialog" aria-labelledby="camSettingsModalLabel" aria-hidden="true">
   <div class="modal-dialog modal-dialog-centered" role="document">
     <div class="modal-content">
       <div class="modal-header">
-        <h5 class="modal-title" id="camSettingsModalLabel">Video Camera Settings</h5>
+        <h5 class="modal-title" id="camSettingsModalLabel"><?php _e('Video Camera Settings', 'agoraio'); ?></h5>
         <button type="button" class="close" data-dismiss="modal" aria-label="Close">
           <span aria-hidden="true">&times;</span>
         </button>
@@ -99,14 +113,14 @@
         <div class="row">
           <div class="col">
             <div class="input-field">
-              <label for="list-camera1" class="active">Camera 1</label>
+              <label for="list-camera1"><?php _e('Camera 1', 'agoraio'); ?></label>
               <select name="list-camera1" id="list-camera1"></select>
             </div>
           </div>
 
           <div class="col">
             <div class="input-field">
-              <label for="list-camera2" class="active">Camera 2</label>
+              <label for="list-camera2"><?php _e('Camera 2', 'agoraio'); ?></label>
               <select name="list-camera2" id="list-camera2"></select>
             </div>
           </div>
@@ -121,8 +135,8 @@
 
       </div>
       <div class="modal-footer">
-        <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
-        <button type="button" class="btn btn-primary">Save changes</button>
+        <button type="button" class="btn btn-secondary" data-dismiss="modal"><?php _e('Close', 'agoraio'); ?></button>
+        <button type="button" class="btn btn-primary"><?php _e('Save Changes', 'agoraio'); ?></button>
       </div>
     </div>
   </div>
@@ -141,9 +155,7 @@
       window.channelName = '<?php echo $channel->title() ?>'; // set channel name
       window.channelId = '<?php echo $channel->id() ?>'; // set channel name
       window.userID = parseInt(`${<?php echo $current_user->ID; ?>}`, 10);
-      if (window.userID>0 && window.userID<100) {
-        window.userID += 100;
-      }
+      
       window.isMainHost = <?php echo $channel->get_properties()['host']==$current_user->ID ? 'true' : 'false'; ?>;
       window.hostID = <?php echo $channel->get_properties()['host']; ?>;
 

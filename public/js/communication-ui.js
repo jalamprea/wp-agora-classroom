@@ -109,13 +109,22 @@ window.AGORA_COMMUNICATION_UI = {
         camSettingsModal.modal('hide');
       })
     }
+
+    jQuery("#users-btn").click(function(e) {
+      e.preventDefault();
+      jQuery(".participants").toggleClass("d-none","d-block");
+    })
+    
+    jQuery(".participants .close-icon").click(function(e) {
+      jQuery(".participants").toggleClass("d-none","d-block");
+    })
   },
 
   toggleMic: function (localStream) {
-    console.log(localStream)
     window.AGORA_UTILS.toggleBtn(jQuery("#mic-btn")); // toggle button colors
     jQuery("#mic-icon").toggleClass('fa-microphone', localStream.userMuteAudio).toggleClass('fa-microphone-slash', !localStream.userMuteAudio); // toggle the mic icon
 
+    jQuery('#participant-'+localStream.streamId).find('.fas.pr-3').toggleClass('fa-microphone', localStream.userMuteAudio).toggleClass('fa-microphone-slash', !localStream.userMuteAudio); // toggle the mic icon
     if (!localStream.userMuteAudio) {
       localStream.muteAudio(); // disable the local video
       window.AGORA_UTILS.toggleVisibility("#mute-overlay", true); // show the muted mic icon
@@ -123,11 +132,13 @@ window.AGORA_COMMUNICATION_UI = {
       localStream.unmuteAudio(); // enable the local mic
       window.AGORA_UTILS.toggleVisibility("#mute-overlay", false); // hide the muted mic icon
     }
+    return localStream.userMuteAudio;
   },
 
   toggleVideo: function (localStream) {
     window.AGORA_UTILS.toggleBtn(jQuery("#video-btn")); // toggle button colors
     jQuery("#video-icon").toggleClass('fa-video', localStream.userMuteVideo).toggleClass('fa-video-slash', !localStream.userMuteVideo); // toggle the video icon
+    jQuery('#participant-'+localStream.streamId).find('.fas.pr-4').toggleClass('fa-video', localStream.userMuteVideo).toggleClass('fa-video-slash', !localStream.userMuteVideo); // toggle the video icon
 
     if (!localStream.userMuteVideo) {
       localStream.muteVideo(); // disable the local video
@@ -145,6 +156,8 @@ window.AGORA_COMMUNICATION_UI = {
         RTC.localStreams.cam2.stream.unmuteVideo();
       }
     }
+
+    return localStream.userMuteVideo;
   },
 
   logCameraDevices: function () {
@@ -274,5 +287,57 @@ window.AGORA_COMMUNICATION_UI = {
     
     // jQuery('#slick-avatars').slick(window.slickSettings);
     window.AGORA_COMMUNICATION_CLIENT.initClientAndJoinChannel(window.agoraAppId, window.channelName);
+  },
+
+
+  // Render again the participants list
+  updateParticipants: function() {
+    const ids = Object.keys(window.RTC.participants);
+    const tpl = `<li id="participant-{{user_id}}">
+        <img src="{{avatar_url}}" alt="image" class="img-fluid rounded-circle" width="35"/>
+        <span class="ml-2">{{user_name}}</span>
+        <span data-user="{{user_id}}" class="fas fa-microphone fa-fw my-2 pl-2 pr-3 float-right"></span>
+        <span data-user="{{user_id}}" class="fas fa-video fa-fw my-2 pl-5 pr-4 float-right"></span>
+    </li>`;
+
+    const toggleUserMic = function() {
+      // console.log('toogleMic');
+      if (this.dataset.user === String(window.userID)) {
+        const mic = window.AGORA_COMMUNICATION_UI.toggleMic( RTC.localStreams['cam1'].stream );
+        // jQuery(this).toggleClass('fa-microphone', !mic).toggleClass('fa-microphone-slash', mic); // toggle this mic icon
+      } else if (window.isMainHost) {
+        // TODO: Toogle mic of remote student
+      }
+    };
+    const toggleUserVideo = function() {
+      if (this.dataset.user === String(window.userID)) {
+        const video = window.AGORA_COMMUNICATION_UI.toggleVideo( RTC.localStreams['cam1'].stream );
+        // jQuery(this).toggleClass('fa-video', !video).toggleClass('fa-video-slash', video); // toggle this mic icon
+      } else if (window.isMainHost) {
+        // TODO: Toogle video of remote student
+      }
+    };
+
+    const parent = jQuery('#participants-list');
+    parent.html('');
+    ids.forEach(id => {
+      const wp_user = RTC.participants[id];
+      const out = tpl.replace('{{avatar_url}}', wp_user.url)
+            .replace(/{{user_id}}/gm, wp_user.user.ID)
+            .replace('{{user_name}}', wp_user.user.display_name);
+
+      const itemLI = jQuery(out);
+      parent.append( itemLI );
+
+      if (id===String(window.userID)) {
+        itemLI.find('.fa-microphone').click(toggleUserMic);
+        itemLI.find('.fa-video').click(toggleUserVideo);
+      } else {
+        itemLI.find('.fa-microphone').remove();
+        itemLI.find('.fa-video').remove();
+      }
+    });
+
+    jQuery('#users-btn').find('.badge-pill').text(ids.length);
   }
 }

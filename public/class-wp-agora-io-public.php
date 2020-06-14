@@ -61,9 +61,12 @@ class WP_Agora_Public {
 	public function getUserAvatar() {
 		$uid = isset($_POST['uid']) ? sanitize_key($_POST['uid']) : 0;
 		$avatar = get_avatar_data( $uid, array('size' => 168) );
+		$user = get_user_by('ID', $uid);
+		$user->data->user_pass = null;
+		$user->data->user_activation_key = null;
 
 		header('Content-Type: application/json');
-		echo json_encode(array( "avatar" => $avatar ));
+		echo json_encode(array( "avatar" => $avatar, "user" => $user->data  ));
 		wp_die();
 	}
 
@@ -244,7 +247,7 @@ class WP_Agora_Public {
 		// append here more settings vars
 		
 		// return $vars;
-		echo '<script>'.$vars.'</script>';
+		echo '<script id="agora-public-vars">'.$vars.'</script>';
 	}
 
 	public static function isShortcodeRendered($shortcode) {
