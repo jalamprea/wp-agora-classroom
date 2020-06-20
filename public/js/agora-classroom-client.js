@@ -1,7 +1,7 @@
 /*
  * JS Interface for Agora.io SDK used into a classrooom environment
  */
-
+window.UID_SUFFIX = '0099';
 window.RTC = {
   client: { cam1: null, cam2: null, screen: null },
   joined: false,
@@ -23,7 +23,9 @@ window.RTC = {
     }
   },
   remoteStreams: {}, // remote streams obj struct [id : stream] 
-  participants: {}
+  participants: {},
+  hostJoined: false,
+  studentsDouble: {} // object list with students who has double stream
 };
 
 window.screenShareActive = false;
@@ -108,6 +110,7 @@ async function initClientAndJoinChannel(agoraAppId, channelName) {
     });
   };
 
+  // Check if the current user is logged in:
   if (window.userID!==0) {
     const cams = await countCameras();
     if (cams>0) {
@@ -118,10 +121,13 @@ async function initClientAndJoinChannel(agoraAppId, channelName) {
           console.log('=== Starting client 2')
           initCam("cam2");
         }
+        
+        // init listeners and events after init first cam at least!
+        window.AGORA_COMMUNICATION_UI.enableUiControls( RTC.localStreams.cam1.stream ); // move after testing
+        initAgoraEvents();
 
       });
     }
-    initAgoraEvents();
 
     if (isMainHost) {
       jQuery('#cam-settings-btn').show();
@@ -141,10 +147,10 @@ async function initClientAndJoinChannel(agoraAppId, channelName) {
 function agoraJoinChannel(channelName, indexCam, cb) {
   // const token = window.AGORA_TOKEN_UTILS.agoraGenerateToken();
 
-  const callback = function(err, token) {
+  const callbackWithToken = function(err, token) {
     if (err) {
       console.error('Token Error:', err);
-      alert('Your access token could not be generated. This page will be reloaded!');
+      // alert('Your access token could not be generated. This page will be reloaded!');
       window.location.reload(true);
 
       // const rejoinBtn =jQuery('#rejoin-btn');
@@ -154,12 +160,12 @@ function agoraJoinChannel(channelName, indexCam, cb) {
       // }
       // return;
     }
+
     RTC.client[indexCam].join(token, channelName, userId, function(uid) {
       AgoraRTC.Logger.info("User " + uid + " join channel successfully");
+      // console.info("User " + uid + " join channel successfully");
       RTC.localStreams[indexCam].id = uid; // keep track of the stream uid 
-      createCameraStream(uid, indexCam);
-
-      cb && cb();
+      createCameraStream(uid, indexCam, cb);
     }, function(errorJoin) {
         AgoraRTC.Logger.error("[ERROR] : join channel failed", errorJoin);
         /* if (err==='UID_CONFLICT') { } */
@@ -168,7 +174,7 @@ function agoraJoinChannel(channelName, indexCam, cb) {
     if (indexCam==='cam1') {
       
       window.AGORA_UTILS.agora_getUserAvatar(window.userID, function(gravatar) {
-        // console.log('callback gravatar:', gravatar);
+        // console.log('callbackWithToken gravatar:', gravatar);
         const url = gravatar.avatar.url;
         RTC.participants[userId] = {
           url: url,
@@ -183,12 +189,16 @@ function agoraJoinChannel(channelName, indexCam, cb) {
   if (indexCam==='cam2') {
     userId *= (userId + 123);
   }
-  AGORA_SCREENSHARE_UTILS.agora_generateAjaxToken(callback, userId);
+  if (!isMainHost) {
+    const n = Math.floor(Math.random() * 10);
+    userId = String(userId) + n + UID_SUFFIX;
+  }
+  AGORA_SCREENSHARE_UTILS.agora_generateAjaxToken(callbackWithToken, userId);
 
 }
 
 // video streams for channel
-function createCameraStream(uid, indexCam) {
+function createCameraStream(uid, indexCam, cb) {
   const options = {
     streamID: uid,
     audio: true,
@@ -234,9 +244,10 @@ function createCameraStream(uid, indexCam) {
       AgoraRTC.Logger.error("[ERROR] : publish local stream error: " + err);
     });
   
-    indexCam==='cam1' && window.AGORA_COMMUNICATION_UI.enableUiControls(localStream); // move after testing
     RTC.localStreams[indexCam].stream = localStream; // keep track of the camera stream for later
-    // console.clear();
+    
+    // Execute callback after finish this function
+    cb && cb();
   }, function (err) {
     AgoraRTC.Logger.error("[ERROR] : getUserMedia failed", err);
   });
@@ -278,7 +289,7 @@ function agoraLeaveChannel() {
 
   // second camera on main hosts:
   if (isMainHost) {
-    RTC.client.cam2.leave(() => {
+    RTC.client.cam2 && RTC.client.cam2.leave(() => {
       RTC.localStreams.cam2.stream.stop() // stop the camera stream playback
       RTC.client.cam2.unpublish(RTC.localStreams.cam2.stream); // unpublish the camera stream
       RTC.localStreams.cam2.stream.close(); // clean up and close the camera stream
@@ -358,6 +369,13 @@ window.mainStreamId = "";
  **/
 
 function initAgoraEvents() {
+  console.log('Starting events...', hostID, userID);
+  const noHostImage = jQuery('#nohost-image');
+
+  if (hostID!==userID) {
+    noHostImage.show();
+  }
+  
   // when my local stream is published
   RTC.client.cam1.on('stream-published', function (evt) {
     console.info("Publish local stream successfully", evt);
@@ -367,7 +385,17 @@ function initAgoraEvents() {
   RTC.client.cam1.on('stream-added', function (evt) {
     var stream = evt.stream;
     var streamId = stream.getId();
-    AgoraRTC.Logger.info("new stream added: " + streamId);
+    console.log("new stream added: " + streamId);
+
+    if (!RTC.hostJoined && streamId===hostID) {
+      RTC.hostJoined = true;
+      noHostImage.hide();
+    }
+
+    if(!RTC.hostJoined && !isMainHost && streamId!==hostID) {
+      noHostImage.show();
+    }
+
     // Check if the stream is local
     // console.info('subscribe to remote stream:' + streamId);
     if (streamId != RTC.localStreams.screen.id && streamId!==RTC.localStreams.cam1.id && streamId!==RTC.localStreams.cam2.id) {
@@ -388,9 +416,6 @@ function initAgoraEvents() {
 
 
     if (!window.isMainHost) {
-      if (window.hostID<100) {
-        // window.hostID += 100; // simple validation from the initial users in WP
-      }
 
       // i'm student but receiving main host stream:
       if (remoteId===window.hostID || remoteId===(window.hostID * (window.hostID + 123))) {
@@ -412,13 +437,6 @@ function initAgoraEvents() {
 
     // Play stream on the main canvas
     console.log('PAINTING REMOTE:', remoteId);
-    // if( jQuery('#video-canvas').is(':empty') ) { 
-    //   mainStreamId = remoteId;
-    //   remoteStream.play('video-canvas');
-    // } else {
-    //   addRemoteStreamMiniView(remoteStream);
-    // }
-
 
     // avoid render the second host camera:
     if(remoteId!==(window.hostID * (window.hostID + 123))) {
@@ -451,6 +469,8 @@ function initAgoraEvents() {
     if (!isMainHost) {
       if (remoteId===window.hostID || remoteId===(window.hostID * (window.hostID + 123))) {
         jQuery('#host-video-'+streamId).remove();
+        RTC.hostJoined = false;
+        noHostImage.show();
       }
     }
 

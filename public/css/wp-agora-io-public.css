@@ -421,7 +421,7 @@ body .agora {
 }
 .agora .rejoin-container button,
 .agora .rejoin-container button[disabled] {
-  background: #007bff;
+  background-color: #2f5e90;
   text-transform: none;
   font-weight: 400;
   font-family: inherit;
@@ -430,28 +430,32 @@ body .agora {
   line-height: 1.5;
 }
 .agora .rejoin-container button:hover {
-  background: #2f5e90;
+  background-color: #007bff;
 }
 
 /**
  * NEW Agora Classsroom
+ * knit-to-wear header size: 60px;
  **/
 .agora-classroom #sidebar-container {
-  min-height: calc(100vh - 113px);
+  min-height: calc(100vh - 60px);
 }
 
 .agora-classroom .card {
-  height: calc(100vh - 150px - 113px);
+  height: calc(100vh - 150px - 60px);
 }
 
 .admin-bar .agora-classroom #sidebar-container {
-  min-height: calc(100vh - 32px - 113px);
+  min-height: calc(100vh - 32px - 60px);
 }
 
 .admin-bar .agora-classroom .card {
-  height: calc(100vh - 150px - 32px - 113px);
+  height: calc(100vh - 150px - 32px - 60px);
 }
 
 .hidden {
   display: none !important;
 }
+
+/** Fix for knit-to-wear site - stockholm theme **/
+body .full_width { z-index: auto; }
