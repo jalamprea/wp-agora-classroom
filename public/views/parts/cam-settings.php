@@ -21,6 +21,10 @@
             <div class="input-field">
               <label for="list-camera2"><?php _e('Camera 2', 'agoraio'); ?></label>
               <select name="list-camera2" id="list-camera2"></select>
+              <span class="custom-control custom-checkbox d-inline-block ml-2">
+                <input type="checkbox" class="custom-control-input" id="enableCam2">
+                <label class="custom-control-label" for="enableCam2">Enabled</label>
+              </span>
             </div>
           </div>
         </div>

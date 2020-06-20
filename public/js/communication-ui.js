@@ -103,7 +103,10 @@ window.AGORA_COMMUNICATION_UI = {
 
         RTC.localStreams.cam1.device = window.availableCams.find(cam => cam.deviceId===cam1);
         RTC.localStreams.cam2.device = window.availableCams.find(cam => cam.deviceId===cam2);
-        const newCamsArray = [RTC.localStreams.cam1.device, RTC.localStreams.cam2.device];
+        
+        RTC.localStreams.cam2.device.enabled = jQuery('#enableCam2').prop('checked');
+
+        const newCamsArray = [RTC.localStreams.cam1.device, RTC.localStreams.cam2.device, RTC.localStreams.cam2.device.enabled];
         window.localStorage.setItem('AGORA_DEVICES_ORDER', JSON.stringify(newCamsArray));
         console.log('New camera settings updated!');
 

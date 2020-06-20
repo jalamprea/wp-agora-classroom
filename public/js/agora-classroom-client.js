@@ -36,12 +36,23 @@ window.AGORA_COMMUNICATION_CLIENT = {
   agoraLeaveChannel: agoraLeaveChannel
 };
 
-async function initCameraLocalSettings() {
+function initCameraLocalSettings() {
   const localDataRaw = window.localStorage.getItem('AGORA_DEVICES_ORDER');
   if ( localDataRaw ) {
     const localData = JSON.parse(localDataRaw);
+    console.log('Loading cam settings');
+
     RTC.localStreams.cam1.device = window.availableCams.find(cam => cam.label===localData[0].label);
     RTC.localStreams.cam2.device = window.availableCams.find(cam => cam.label===localData[1].label);
+
+    if (localData.length===3) {
+      RTC.localStreams.cam2.device.enabled = localData[2];
+      jQuery('#enableCam2').prop('checked', localData[2]);
+    } else {
+      // load default values:
+      jQuery('#enableCam2').prop('checked', true);
+      RTC.localStreams.cam2.device.enabled = true;
+    }
 
     if (!RTC.localStreams.cam1.device || !RTC.localStreams.cam2.device) {
       window.localStorage.removeItem('AGORA_DEVICES_ORDER');
@@ -50,7 +61,12 @@ async function initCameraLocalSettings() {
   } else {
     RTC.localStreams.cam1.device = window.availableCams[0];
     RTC.localStreams.cam2.device = window.availableCams[1];
+
+    jQuery('#enableCam2').prop('checked', true);
+    RTC.localStreams.cam2.device.enabled = true;
+    
     window.localStorage.setItem('AGORA_DEVICES_ORDER', JSON.stringify(window.availableCams));
+    console.log('Resseting Camera settings!');
   }
 
   jQuery('#list-camera1').val(RTC.localStreams.cam1.device.deviceId);
@@ -117,7 +133,7 @@ async function initClientAndJoinChannel(agoraAppId, channelName) {
       console.log('=== Starting client 1')
       initCam("cam1", function() {
 
-        if (cams>1 && window.isMainHost) {
+        if (cams>1 && window.isMainHost && RTC.localStreams.cam2.device.enabled) {
           console.log('=== Starting client 2')
           initCam("cam2");
         }

@@ -36,7 +36,7 @@
             <div class="w-100 justify-content-start align-items-center">
                 <span class="fas fa-camera fa-fw mr-3"></span>
                 
-                <span class="menu-collapsed"> <?php _e('Caemra Settings', 'agoraio'); ?> </span>
+                <span class="menu-collapsed"> <?php _e('Camera Settings', 'agoraio'); ?> </span>
             </div>
         </a>
         <!-- /END Separator -->
