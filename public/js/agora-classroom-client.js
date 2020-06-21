@@ -211,6 +211,7 @@ function agoraJoinChannel(channelName, indexCam, cb) {
     const n = Math.floor(Math.random() * 10);
     userId = parseInt(String(userId) + n + UID_SUFFIX);
   }
+  console.log('USerId:', userId);
   AGORA_SCREENSHARE_UTILS.agora_generateAjaxToken(callbackWithToken, userId);
 
 }
@@ -290,6 +291,8 @@ function agoraLeaveChannel() {
 
     jQuery("#remote-streams").empty() // clean up the remote feeds
     jQuery('#main-video-container').find('.videoItem').remove();
+    jQuery('#nohost-image').hide();
+    jQuery('#splash-image').hide();
     
     //disable the UI elements
     jQuery("#mic-btn").prop("disabled", true);
@@ -426,7 +429,7 @@ function initAgoraEvents() {
 
     // Check if the stream is local
     // console.info('subscribe to remote stream:' + streamId);
-    if (streamId != RTC.localStreams.screen.id && streamId!==RTC.localStreams.cam1.id && streamId!==RTC.localStreams.cam2.id) {
+    if (streamId != RTC.localStreams.screen.id && streamId!==RTC.localStreams.cam1.id && streamId!==(RTC.localStreams.cam1.id*(RTC.localStreams.cam1.id + 123))) {
       // Subscribe to the remote stream
       RTC.client.cam1.subscribe(stream, function (err) {
         console.error("[ERROR] : subscribe stream failed", err);
