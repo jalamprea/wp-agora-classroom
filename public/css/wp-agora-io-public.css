@@ -81,6 +81,7 @@ body .agora {
   animation: spinner-border .75s linear infinite;
 }
 
+
 .agora .controls-top #buttons-container,
 .agora .controls-top #screen-share-btn-container {
   position: absolute;
@@ -166,6 +167,16 @@ body .agora {
   margin: 0;
 }
 
+.switch-overlay {
+  position: absolute;
+  z-index: 2;
+  top: 2px;
+  right: 6px;
+  font-size: 1.2em;
+  padding: 2px;
+  display: none;
+  cursor: pointer;
+}
 
 .remote-video {
   position: absolute;

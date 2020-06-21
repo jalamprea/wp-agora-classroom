@@ -349,9 +349,25 @@ function addRemoteStreamMiniView(remoteStream){
         jQuery('<div/>', {'id': streamId + '_no-video', 'class': 'no-video-overlay text-center'}).append(
           jQuery('<i/>', {'class': 'fas fa-user'})
         ),
+        jQuery('<div/>', {'id': streamId + '_switch', 'class': 'switch-overlay'}).append(
+            jQuery('<i/>', {'class': 'fas fa-sync'})
+        ),
         jQuery('<div/>', {'id': 'agora_remote_' + streamId, 'class': 'remote-video'})
       )
     );
+
+    jQuery('#'+streamId+'_switch').click(function(evt){
+      evt.preventDefault();
+      
+      const uid = this.id.replace('_switch', '');
+      const parentPlayer = jQuery(this.parentElement).find('#agora_remote_'+uid);
+      const currentVideoId = parentPlayer[0].children[0].id.replace('player_', '');
+      // console.log('Real UID:', currentVideoId);
+      // console.log('change cam for user:', uid);
+      const nextStream = Object.values(RTC.studentsDouble[uid]).find(s => s.streamId!=currentVideoId);
+      RTC.studentsDouble[uid][currentVideoId].stop();
+      nextStream.play('agora_remote_' + uid);
+    });
   }
   playerAvailable && remoteStream.play('agora_remote_' + streamId); 
 
@@ -395,11 +411,7 @@ function initAgoraEvents() {
   // connect remote streams
   RTC.client.cam1.on('stream-added', function (evt) {
     const stream = evt.stream;
-    let streamId = stream.getId();
-    if (String(streamId).indexOf(window.UID_SUFFIX)>0) {
-      streamId = String(streamId).substring(0, String(streamId).length - 5); // remove UID_SUFFIX and Random integer
-      streamId = parseInt(streamId);
-    }
+    let streamId = window.AGORA_UTILS.getRealUserId( stream.getId() );
 
     console.log("new stream added: " + streamId);
 
@@ -425,15 +437,15 @@ function initAgoraEvents() {
   // when Remote Stream is received:
   RTC.client.cam1.on('stream-subscribed', function (evt) {
     const remoteStream = evt.stream;
-    let remoteId = remoteStream.getId();
+    let remoteId = window.AGORA_UTILS.getRealUserId( remoteStream.getId() );
     console.log('Stream-subscribed', remoteId);
-    if (String(remoteId).indexOf(window.UID_SUFFIX)>0) {
-      remoteId = String(remoteId).substring(0, String(remoteId).length - 5); // remove UID_SUFFIX and Random integer
-      remoteId = parseInt(remoteId);
-    }
+    
 
     if (!RTC.studentsDouble[remoteId]) {
       RTC.studentsDouble[remoteId] = {};
+    } else {
+      // if the student already exists.. I should paint a swithc video button in the student video.
+      jQuery('#remote-container-' + remoteId).find('.switch-overlay').show();
     }
     RTC.studentsDouble[remoteId][ remoteStream.getId() ] = remoteStream;
 
@@ -495,12 +507,7 @@ function initAgoraEvents() {
       return false;
     }
     console.log('peer-leave:', evt);
-    let streamId = evt.stream.getId();
-    if (String(streamId).indexOf(window.UID_SUFFIX)>0) {
-      streamId = String(streamId).substring(0, String(streamId).length - 5); // remove UID_SUFFIX and Random integer
-      streamId = parseInt(streamId);
-    }
-
+    let streamId = window.AGORA_UTILS.getRealUserId(evt.stream.getId());
 
     if (!isMainHost) {
       if (streamId===window.hostID || streamId===(window.hostID * (window.hostID + 123))) {
@@ -527,24 +534,26 @@ function initAgoraEvents() {
         RTC.participants[streamId] = null;
         delete RTC.participants[streamId];
         window.AGORA_COMMUNICATION_UI.updateParticipants();
+      } else {
+        jQuery('#remote-container-'+streamId).find('.switch-overlay').hide();
       }
     }
-
-
   });
 
   // show mute icon whenever a remote has muted their mic
   RTC.client.cam1.on("mute-audio", function (evt) {
-    window.AGORA_UTILS.toggleVisibility('#' + evt.uid + '_mute', true);
+    const streamId = window.AGORA_UTILS.getRealUserId( evt.uid );
+    window.AGORA_UTILS.toggleVisibility('#' + streamId + '_mute', true);
   });
 
   RTC.client.cam1.on("unmute-audio", function (evt) {
-    window.AGORA_UTILS.toggleVisibility('#' + evt.uid + '_mute', false);
+    const streamId = window.AGORA_UTILS.getRealUserId( evt.uid );
+    window.AGORA_UTILS.toggleVisibility('#' + streamId + '_mute', false);
   });
 
   // show user icon whenever a remote has disabled their video
   RTC.client.cam1.on("mute-video", function (evt) {
-    var remoteId = evt.uid;
+    const remoteId = window.AGORA_UTILS.getRealUserId( evt.uid );
     // if the main user stops their video select a random user from the list
     if (remoteId != mainStreamId) {
       // if not the main vidiel then show the user icon
@@ -553,7 +562,8 @@ function initAgoraEvents() {
   });
 
   RTC.client.cam1.on("unmute-video", function (evt) {
-    window.AGORA_UTILS.toggleVisibility('#' + evt.uid + '_no-video', false);
+    const remoteId = window.AGORA_UTILS.getRealUserId( evt.uid );
+    window.AGORA_UTILS.toggleVisibility('#' + remoteId + '_no-video', false);
   });  
 }
 
