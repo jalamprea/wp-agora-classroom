@@ -144,11 +144,13 @@ window.AGORA_COMMUNICATION_UI = {
     jQuery("#video-icon").toggleClass('fa-video', localStream.userMuteVideo).toggleClass('fa-video-slash', !localStream.userMuteVideo); // toggle the video icon
     jQuery('#participant-'+localStream.streamId).find('.fas.pr-4').toggleClass('fa-video', localStream.userMuteVideo).toggleClass('fa-video-slash', !localStream.userMuteVideo); // toggle the video icon
 
+    const cam2Enabled = jQuery('#enableCam2').prop('checked');
+
     if (!localStream.userMuteVideo) {
       localStream.muteVideo(); // disable the local video
       window.AGORA_UTILS.toggleVisibility("#no-local-video", true); // show the user icon when video is disabled
 
-      if (isMainHost && availableCams.length>1) {
+      if (isMainHost && availableCams.length>1 && cam2Enabled) {
         RTC.localStreams.cam2.stream.muteVideo();
       }
     } else {
@@ -156,7 +158,7 @@ window.AGORA_COMMUNICATION_UI = {
       window.AGORA_UTILS.toggleVisibility("#no-local-video", false); // hide the user icon when video is enabled
       // window.AGORA_COMMUNICATION_UI.logCameraDevices();
 
-      if (isMainHost && availableCams.length>1) {
+      if (isMainHost && availableCams.length>1 && cam2Enabled) {
         RTC.localStreams.cam2.stream.unmuteVideo();
       }
     }

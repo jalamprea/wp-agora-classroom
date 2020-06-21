@@ -117,7 +117,7 @@ async function initClientAndJoinChannel(agoraAppId, channelName) {
 
   // init Agora SDK per each client/cam
   const initCam = function(indexCam, cb) {
-    RTC.client[indexCam] = AgoraRTC.createClient({mode: 'rtc', codec: 'vp8'});     
+    RTC.client[indexCam] = AgoraRTC.createClient({mode: 'rtc', codec: 'vp8'});
     RTC.client[indexCam].init(agoraAppId, function () {
       AgoraRTC.Logger.info("AgoraRTC client " + indexCam + " initialized");
       agoraJoinChannel(channelName, indexCam, cb); // join channel upon successfull init
@@ -134,15 +134,16 @@ async function initClientAndJoinChannel(agoraAppId, channelName) {
       initCam("cam1", function() {
 
         if (cams>1 && window.isMainHost && RTC.localStreams.cam2.device.enabled) {
-          console.log('=== Starting client 2')
+          console.log('=== Starting client 2');
           initCam("cam2");
         }
         
-        // init listeners and events after init first cam at least!
-        window.AGORA_COMMUNICATION_UI.enableUiControls( RTC.localStreams.cam1.stream ); // move after testing
-        initAgoraEvents();
-
+        // init UI Clicks and Listener
+        window.AGORA_COMMUNICATION_UI.enableUiControls( RTC.localStreams.cam1.stream ); // move after testing 
       });
+
+      // init agora events:
+      initAgoraEvents();
     }
 
     if (isMainHost) {
@@ -180,7 +181,7 @@ function agoraJoinChannel(channelName, indexCam, cb) {
     RTC.client[indexCam].join(token, channelName, userId, function(uid) {
       AgoraRTC.Logger.info("User " + uid + " join channel successfully");
       // console.info("User " + uid + " join channel successfully");
-      RTC.localStreams[indexCam].id = uid; // keep track of the stream uid 
+      RTC.localStreams[indexCam].id = window.userID; // keep track of the stream uid 
       createCameraStream(uid, indexCam, cb);
     }, function(errorJoin) {
         AgoraRTC.Logger.error("[ERROR] : join channel failed", errorJoin);
@@ -192,7 +193,7 @@ function agoraJoinChannel(channelName, indexCam, cb) {
       window.AGORA_UTILS.agora_getUserAvatar(window.userID, function(gravatar) {
         // console.log('callbackWithToken gravatar:', gravatar);
         const url = gravatar.avatar.url;
-        RTC.participants[userId] = {
+        RTC.participants[window.userID] = {
           url: url,
           user: gravatar.user
         }
@@ -205,9 +206,10 @@ function agoraJoinChannel(channelName, indexCam, cb) {
   if (indexCam==='cam2') {
     userId *= (userId + 123);
   }
+
   if (!isMainHost) {
     const n = Math.floor(Math.random() * 10);
-    userId = String(userId) + n + UID_SUFFIX;
+    userId = parseInt(String(userId) + n + UID_SUFFIX);
   }
   AGORA_SCREENSHARE_UTILS.agora_generateAjaxToken(callbackWithToken, userId);
 
@@ -281,7 +283,14 @@ function agoraLeaveChannel() {
     RTC.localStreams.cam1.stream.stop() // stop the camera stream playback
     RTC.client.cam1.unpublish(RTC.localStreams.cam1.stream); // unpublish the camera stream
     RTC.localStreams.cam1.stream.close(); // clean up and close the camera stream
+    
+    // Force GC (?)
+    RTC.remoteStreams = null;
+    RTC.remoteStreams = {};
+
     jQuery("#remote-streams").empty() // clean up the remote feeds
+    jQuery('#main-video-container').find('.videoItem').remove();
+    
     //disable the UI elements
     jQuery("#mic-btn").prop("disabled", true);
     jQuery("#video-btn").prop("disabled", true);
@@ -320,14 +329,18 @@ function agoraLeaveChannel() {
 
 // REMOTE STREAMS UI
 function addRemoteStreamMiniView(remoteStream){
-  var streamId = remoteStream.getId();
+  let streamId = remoteStream.getId();
+  if (String(streamId).indexOf(window.UID_SUFFIX)>0) {
+      streamId = String(streamId).substring(0, String(streamId).length - 5); // remove UID_SUFFIX and Random integer
+      streamId = parseInt(streamId);
+    }
   
   console.log('Adding remote to miniview:', streamId);
   // append the remote stream template to #remote-streams
   const remoteStreamsDiv = jQuery('#remote-streams');
-  let playerFound = false;
-  if (remoteStreamsDiv.length>0) {
-    playerFound = true;
+  let playerAvailable = false;
+  if (remoteStreamsDiv.length>0 && remoteStreamsDiv.find('#remote-container-'+streamId).length===0) {
+    playerAvailable = true;
     remoteStreamsDiv.append(
       jQuery('<div/>', {'id': 'remote-container-'+streamId,  'class': 'remote-stream-container student-video'}).append(
         jQuery('<div/>', {'id': streamId + '_mute', 'class': 'mute-overlay'}).append(
@@ -339,26 +352,8 @@ function addRemoteStreamMiniView(remoteStream){
         jQuery('<div/>', {'id': 'agora_remote_' + streamId, 'class': 'remote-video'})
       )
     );
-  } else {
-    /* const avatarCircleDiv = jQuery('#uid-'+streamId);
-    if (avatarCircleDiv.length>0) {
-      playerFound = true;
-      const circle = avatarCircleDiv.find('.avatar-circle');
-      circle.append(
-        jQuery('<div/>', {'id': streamId + '_container',  'class': 'remote-stream-container'}).append(
-          jQuery('<div/>', {'id': streamId + '_mute', 'class': 'mute-overlay'}).append(
-            jQuery('<i/>', {'class': 'fas fa-microphone-slash'})
-          ),
-          jQuery('<div/>', {'id': streamId + '_no-video', 'class': 'no-video-overlay text-center'}).append(
-            jQuery('<i/>', {'class': 'fas fa-user'})
-          ),
-          jQuery('<div/>', {'id': 'agora_remote_' + streamId, 'class': 'remote-video'})
-        )
-      )
-      circle.find('img').hide();
-    } */
   }
-  playerFound && remoteStream.play('agora_remote_' + streamId); 
+  playerAvailable && remoteStream.play('agora_remote_' + streamId); 
 
   var containerId = '#' + 'remote-container-' + streamId;
   jQuery(containerId).dblclick(function() {
@@ -399,8 +394,13 @@ function initAgoraEvents() {
 
   // connect remote streams
   RTC.client.cam1.on('stream-added', function (evt) {
-    var stream = evt.stream;
-    var streamId = stream.getId();
+    const stream = evt.stream;
+    let streamId = stream.getId();
+    if (String(streamId).indexOf(window.UID_SUFFIX)>0) {
+      streamId = String(streamId).substring(0, String(streamId).length - 5); // remove UID_SUFFIX and Random integer
+      streamId = parseInt(streamId);
+    }
+
     console.log("new stream added: " + streamId);
 
     if (!RTC.hostJoined && streamId===hostID) {
@@ -425,10 +425,25 @@ function initAgoraEvents() {
   // when Remote Stream is received:
   RTC.client.cam1.on('stream-subscribed', function (evt) {
     const remoteStream = evt.stream;
-    const remoteId = remoteStream.getId();
-    RTC.remoteStreams[remoteId] = remoteStream;
+    let remoteId = remoteStream.getId();
+    console.log('Stream-subscribed', remoteId);
+    if (String(remoteId).indexOf(window.UID_SUFFIX)>0) {
+      remoteId = String(remoteId).substring(0, String(remoteId).length - 5); // remove UID_SUFFIX and Random integer
+      remoteId = parseInt(remoteId);
+    }
+
+    if (!RTC.studentsDouble[remoteId]) {
+      RTC.studentsDouble[remoteId] = {};
+    }
+    RTC.studentsDouble[remoteId][ remoteStream.getId() ] = remoteStream;
+
+    if (!RTC.remoteStreams[remoteId]) {
+      RTC.remoteStreams[remoteId] = remoteStream;
+      console.info('===> NEW STREAM-SUBSCRIBED', remoteId)
+    } else {
+      console.info('===> DUPLICATED STREAM-SUBSCRIBED', remoteId)
+    }
     // console.log('Stream subscribed:', remoteId);
-    console.info('===> STREAM-SUBSCRIBED', remoteId)
 
 
     if (!window.isMainHost) {
@@ -480,10 +495,15 @@ function initAgoraEvents() {
       return false;
     }
     console.log('peer-leave:', evt);
-    const remoteId = evt.stream.getId();
-    var streamId = evt.stream.getId(); // the the stream id
+    let streamId = evt.stream.getId();
+    if (String(streamId).indexOf(window.UID_SUFFIX)>0) {
+      streamId = String(streamId).substring(0, String(streamId).length - 5); // remove UID_SUFFIX and Random integer
+      streamId = parseInt(streamId);
+    }
+
+
     if (!isMainHost) {
-      if (remoteId===window.hostID || remoteId===(window.hostID * (window.hostID + 123))) {
+      if (streamId===window.hostID || streamId===(window.hostID * (window.hostID + 123))) {
         jQuery('#host-video-'+streamId).remove();
         RTC.hostJoined = false;
         noHostImage.show();
@@ -493,6 +513,7 @@ function initAgoraEvents() {
     if (RTC.remoteStreams[streamId] !== undefined) {
       RTC.remoteStreams[streamId].stop(); // stop playing the feed
       delete RTC.remoteStreams[streamId]; // remove stream from list
+      delete RTC.studentsDouble[streamId][evt.stream.getId()];
       jQuery('#remote-container-'+streamId).remove();
       // if (streamId == mainStreamId) {
       //   var streamIds = Object.keys(RTC.remoteStreams);

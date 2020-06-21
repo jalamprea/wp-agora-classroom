@@ -53,7 +53,7 @@ window.AGORA_UTILS = {
 
   agora_getUserAvatar: function (user_id, cb) {
     // var uid = String(user_id).substring(3);
-    // console.log('Real WP user ID:', user_id)
+    console.log('Avatar user ID:', user_id)
     var params = {
       action: 'get_user_avatar', // wp ajax action
       uid: user_id, // needed to get the avatar from the WP user

@@ -107,9 +107,14 @@ html { height: auto !important; }
   border: 1px solid #666;
   height: calc(100vw * (16/9));
   /* height: 80%; */
-  max-width: 60%;
+  max-width: 80%;
   max-height: 90%;
   flex: 1;
+}
+@media screen and (min-width: 1200px) {
+  .videoItem {
+    max-width: 60%;
+  }
 }
 
 .studentsRow {
