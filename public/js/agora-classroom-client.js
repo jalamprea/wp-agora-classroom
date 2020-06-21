@@ -511,29 +511,25 @@ function initAgoraEvents() {
     }
 
     if (RTC.remoteStreams[streamId] !== undefined) {
-      RTC.remoteStreams[streamId].stop(); // stop playing the feed
-      delete RTC.remoteStreams[streamId]; // remove stream from list
-      delete RTC.studentsDouble[streamId][evt.stream.getId()];
-      jQuery('#remote-container-'+streamId).remove();
-      // if (streamId == mainStreamId) {
-      //   var streamIds = Object.keys(RTC.remoteStreams);
-      //   var randomId = streamIds[Math.floor(Math.random()*streamIds.length)]; // select from the remaining streams
-      //   if (RTC.remoteStreams[randomId]) {
-      //     RTC.remoteStreams[randomId].stop(); // stop the stream's existing playback
-      //     var remoteContainerID = '#' + randomId + '_container';
-      //     jQuery(remoteContainerID).empty().remove(); // remove the stream's miniView container
-      //     RTC.remoteStreams[randomId].play('video-canvas'); // play the random stream as the main stream
-      //     mainStreamId = randomId; // set the new main remote stream
-      //   }
-      // } else {
-      //   var remoteContainerID = '#' + streamId + '_container';
-      //   // jQuery(remoteContainerID).empty().remove(); // 
-      // }
+      let removeStream = false;
+      if (RTC.studentsDouble[streamId] && RTC.studentsDouble[streamId][evt.stream.getId()]) {
+        delete RTC.studentsDouble[streamId][evt.stream.getId()];
+        const video = jQuery('#video'+evt.stream.getId());
+        removeStream = video && video.length>0;
+      }
+
+      if (removeStream) {
+        RTC.remoteStreams[streamId].stop(); // stop playing the feed
+        delete RTC.remoteStreams[streamId]; // remove stream from list
+        jQuery('#remote-container-'+streamId).remove();
+
+        // also remove it form the participants list
+        RTC.participants[streamId] = null;
+        delete RTC.participants[streamId];
+        window.AGORA_COMMUNICATION_UI.updateParticipants();
+      }
     }
 
-    RTC.participants[streamId] = null;
-    delete RTC.participants[streamId];
-    window.AGORA_COMMUNICATION_UI.updateParticipants();
 
   });
 
