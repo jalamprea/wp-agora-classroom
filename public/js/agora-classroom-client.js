@@ -355,6 +355,7 @@ function addRemoteStreamMiniView(remoteStream){
         jQuery('<div/>', {'id': streamId + '_switch', 'class': 'switch-overlay'}).append(
             jQuery('<i/>', {'class': 'fas fa-sync'})
         ),
+        jQuery('<div/>', {'id': streamId + '_username', 'class': 'username-overlay'}),
         jQuery('<div/>', {'id': 'agora_remote_' + streamId, 'class': 'remote-video'})
       )
     );
@@ -492,7 +493,8 @@ function initAgoraEvents() {
         RTC.participants[remoteId] = {
           url: url,
           user: gravatar.user
-        }
+        };
+        jQuery('#'+remoteId+'_username').html(gravatar.user.display_name);
         AGORA_COMMUNICATION_UI.updateParticipants();
       });
     }

@@ -185,6 +185,20 @@ body .agora {
   width: 100%;
 }
 
+.username-overlay {
+    position: absolute;
+    width: 100%;
+    bottom: 0;
+    background: rgba(49, 49, 49, 0.7);
+    display: block;
+    color: #d7d7d7;
+    z-index: 999;
+    text-align: center;
+    font-size: 0.8rem;
+    max-height: 25px;
+    overflow: hidden;
+}
+
 #mute-overlay {
   position: absolute;
   z-index: 2;
