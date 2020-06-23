@@ -146,8 +146,8 @@ async function initClientAndJoinChannel(agoraAppId, channelName) {
       initAgoraEvents();
     }
 
-    if (isMainHost) {
-      jQuery('#cam-settings-btn').show();
+    if (!isMainHost) {
+      window.AGORA_UTILS.toggleVisibility('#cam-settings-btn', isMainHost);
     }
 
     // Screenshare Client:

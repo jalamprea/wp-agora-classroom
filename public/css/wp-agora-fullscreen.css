@@ -131,6 +131,7 @@ html { height: auto !important; }
   margin: 0 auto;
   top: -12px;
   left: calc(50% - 50px);
+  z-index: 10;
 }
 
 .card {

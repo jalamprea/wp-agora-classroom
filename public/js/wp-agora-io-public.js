@@ -54,9 +54,9 @@ window.AGORA_UTILS = {
 
   toggleVisibility: function (elementID, visible) {
     if (visible) {
-      jQuery(elementID).attr("style", "display:block");
+      jQuery(elementID).attr("style", "display:block !important");
     } else {
-      jQuery(elementID).attr("style", "display:none");
+      jQuery(elementID).attr("style", "display:none !important");
     }
   },
 
