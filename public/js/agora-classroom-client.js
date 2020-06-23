@@ -211,7 +211,6 @@ function agoraJoinChannel(channelName, indexCam, cb) {
     const n = Math.floor(Math.random() * 10);
     userId = parseInt(String(userId) + n + UID_SUFFIX);
   }
-  console.log('USerId:', userId);
   AGORA_SCREENSHARE_UTILS.agora_generateAjaxToken(callbackWithToken, userId);
 
 }
@@ -376,22 +375,95 @@ function addRemoteStreamMiniView(remoteStream){
   playerAvailable && remoteStream.play('agora_remote_' + streamId); 
 
   var containerId = '#' + 'remote-container-' + streamId;
-  jQuery(containerId).dblclick(function() {
-    // play selected container as full screen - swap out current full screen stream
-    console.log('Double click!')
-    // RTC.remoteStreams[mainStreamId].stop(); // stop the main video stream playback
-    // addRemoteStreamMiniView(RTC.remoteStreams[mainStreamId]); // send the main video stream to a container
-    // const parentCircle = jQuery(containerId).parent();
-    // if (parentCircle.hasClass('avatar-circle')) {
-    //   parentCircle.find('img').show();
-    // }
-    // jQuery(containerId).empty().remove(); // remove the stream's miniView container
-    // RTC.remoteStreams[streamId].stop() // stop the container's video stream playback
-    // RTC.remoteStreams[streamId].play('video-canvas'); // play the remote stream as the full screen video
-    // mainStreamId = streamId; // set the container stream id as the new main stream id
-  });
+  jQuery(containerId).dblclick(swapVideoStudentAndHost);
 }
-window.mainStreamId = "";
+
+
+function swapVideoStudentAndHost() {
+  // play selected container as full screen - swap out current full screen stream
+  // console.log('Double click!');
+
+  if (!RTC.hostJoined && !window.isMainHost) {
+    console.log('no host joined... action ignored');
+    return;
+  }
+
+  const uid = this.id.replace('remote-container-', '');
+  const videoPlayer = jQuery(this).find('video');
+  let streamIdWithSuffix = videoPlayer[0].id.replace('video', '');
+  // console.log(streamIdWithSuffix);
+
+  // if this container is playing a student video:
+  if (streamIdWithSuffix.indexOf(uid)===0) {
+    RTC.studentsDouble[uid][streamIdWithSuffix].stop();
+
+    if (isMainHost) {
+      RTC.localStreams.cam1.stream.stop();
+      if (RTC.localStreams.cam2 && RTC.localStreams.cam2.stream) {
+        RTC.localStreams.cam2.stream.stop();
+        jQuery('#local-video-cam2').hide();
+      }
+
+      // play remote student on the main host container
+      RTC.studentsDouble[uid][streamIdWithSuffix].play('local-video-cam1');
+
+      // play main host on the student box
+      RTC.localStreams.cam1.stream.play('agora_remote_'+uid);
+    } else {
+      // streamId===window.hostID || streamId===(window.hostID * (window.hostID + 123))
+      if (RTC.remoteStreams[window.hostID]) {
+        RTC.remoteStreams[window.hostID].stop();
+        const idCam2 = window.hostID * (window.hostID + 123);
+        if (RTC.remoteStreams[idCam2]) {
+          RTC.remoteStreams[idCam2].stop();
+          jQuery('#host-video-'+idCam2).hide();
+        }
+
+        RTC.studentsDouble[uid][streamIdWithSuffix].play('host-video-'+window.hostID);
+        RTC.remoteStreams[window.hostID].play('agora_remote_'+uid);
+      }
+    }
+
+    // disable .username-overlay
+    window.AGORA_UTILS.toggleVisibility('#'+uid+'_username', false);
+  } else { // if this action is to restore the main host video:
+
+    if (isMainHost) {
+      RTC.localStreams.cam1.stream.stop();
+
+      streamIdWithSuffix = document.getElementById('local-video-cam1').children[0].id.replace('player_', '');
+      RTC.studentsDouble[uid][streamIdWithSuffix].stop();
+      RTC.studentsDouble[uid][streamIdWithSuffix].play('agora_remote_' + uid);
+
+      RTC.localStreams.cam1.stream.play('local-video-cam1');
+      if (RTC.localStreams.cam2 && RTC.localStreams.cam2.stream) {
+        RTC.localStreams.cam2.stream.play('local-video-cam2');
+        jQuery('#local-video-cam2').show();
+      }
+    } else {
+      if (RTC.remoteStreams[window.hostID]) {
+        RTC.remoteStreams[window.hostID].stop();
+
+        streamIdWithSuffix = document.getElementById('host-video-'+window.hostID).children[0].id.replace('player_', '');
+
+        RTC.studentsDouble[uid][streamIdWithSuffix].stop();
+        RTC.studentsDouble[uid][streamIdWithSuffix].play('agora_remote_' + uid);
+
+        RTC.remoteStreams[window.hostID].play('host-video-' + window.hostID);
+        const idCam2 = window.hostID * (window.hostID + 123);
+        if (RTC.remoteStreams[idCam2]) {
+          RTC.remoteStreams[idCam2].play('host-video-'+idCam2);
+          jQuery('#host-video-'+idCam2).show();
+        }
+      }
+    }
+
+    // disable .username-overlay
+    window.AGORA_UTILS.toggleVisibility('#'+uid+'_username', true);
+  }
+
+
+}
 
 /**
  **
@@ -433,7 +505,7 @@ function initAgoraEvents() {
     if (streamId != RTC.localStreams.screen.id && streamId!==RTC.localStreams.cam1.id && streamId!==(RTC.localStreams.cam1.id*(RTC.localStreams.cam1.id + 123))) {
       // Subscribe to the remote stream
       RTC.client.cam1.subscribe(stream, function (err) {
-        console.error("[ERROR] : subscribe stream failed", err);
+        AgoraRTC.Logger.error("[ERROR] : subscribe stream failed", err);
       });
     }
   });
@@ -445,13 +517,15 @@ function initAgoraEvents() {
     console.log('Stream-subscribed', remoteId);
     
 
-    if (!RTC.studentsDouble[remoteId]) {
-      RTC.studentsDouble[remoteId] = {};
-    } else {
-      // if the student already exists.. I should paint a swithc video button in the student video.
-      jQuery('#remote-container-' + remoteId).find('.switch-overlay').show();
+    if (remoteId !== remoteStream.getId() ) {
+      if (!RTC.studentsDouble[remoteId]) {
+        RTC.studentsDouble[remoteId] = {};
+      } else {
+        // if the student already exists.. I should paint a swithc video button in the student video.
+        jQuery('#remote-container-' + remoteId).find('.switch-overlay').show();
+      }
+      RTC.studentsDouble[remoteId][ remoteStream.getId() ] = remoteStream;
     }
-    RTC.studentsDouble[remoteId][ remoteStream.getId() ] = remoteStream;
 
     if (!RTC.remoteStreams[remoteId]) {
       RTC.remoteStreams[remoteId] = remoteStream;
@@ -466,11 +540,13 @@ function initAgoraEvents() {
 
       // i'm student but receiving main host stream:
       if (remoteId===window.hostID || remoteId===(window.hostID * (window.hostID + 123))) {
-        const hostVideoDiv = document.createElement('div');
-        hostVideoDiv.id = 'host-video-' + remoteId;
-        hostVideoDiv.classList.add('videoItem');
-        document.getElementById('main-video-container').appendChild(hostVideoDiv);
-        remoteStream.play('host-video-' + remoteId);
+        if (jQuery('#host-video-' + remoteId).length===0) {
+          const hostVideoDiv = document.createElement('div');
+          hostVideoDiv.id = 'host-video-' + remoteId;
+          hostVideoDiv.classList.add('videoItem');
+          document.getElementById('main-video-container').appendChild(hostVideoDiv);
+          remoteStream.play('host-video-' + remoteId);
+        }
       } else {
         // this stream is from another student.
         // hostVideoDiv.classList.add('student-video');
@@ -508,7 +584,7 @@ function initAgoraEvents() {
   // remove the remote-container when a user leaves the channel
   RTC.client.cam1.on("peer-leave", function(evt) {
     if (!evt || !evt.stream) {
-      console.error('Stream undefined cannot be removed', evt);
+      AgoraRTC.Logger.error('Stream undefined cannot be removed', evt);
       return false;
     }
     console.log('peer-leave:', evt);
@@ -559,11 +635,9 @@ function initAgoraEvents() {
   // show user icon whenever a remote has disabled their video
   RTC.client.cam1.on("mute-video", function (evt) {
     const remoteId = window.AGORA_UTILS.getRealUserId( evt.uid );
-    // if the main user stops their video select a random user from the list
-    if (remoteId != mainStreamId) {
-      // if not the main vidiel then show the user icon
-      window.AGORA_UTILS.toggleVisibility('#' + remoteId + '_no-video', true);
-    }
+
+    // if not the main vidiel then show the user icon
+    window.AGORA_UTILS.toggleVisibility('#' + remoteId + '_no-video', true);
   });
 
   RTC.client.cam1.on("unmute-video", function (evt) {
