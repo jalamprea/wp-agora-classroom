@@ -378,99 +378,11 @@ function addRemoteStreamMiniView(remoteStream){
   jQuery(containerId).dblclick(swapVideoStudentAndHost);
 }
 
-
-function swapVideoStudentAndHost() {
-  // play selected container as full screen - swap out current full screen stream
-  // console.log('Double click!');
-
-  if (!RTC.hostJoined && !window.isMainHost) {
-    console.log('no host joined... action ignored');
-    return;
-  }
-
-  const uid = this.id.replace('remote-container-', '');
-  const videoPlayer = jQuery(this).find('video');
-  let streamIdWithSuffix = videoPlayer[0].id.replace('video', '');
-  // console.log(streamIdWithSuffix);
-
-  // if this container is playing a student video:
-  if (streamIdWithSuffix.indexOf(uid)===0) {
-    RTC.studentsDouble[uid][streamIdWithSuffix].stop();
-
-    if (isMainHost) {
-      RTC.localStreams.cam1.stream.stop();
-      if (RTC.localStreams.cam2 && RTC.localStreams.cam2.stream) {
-        RTC.localStreams.cam2.stream.stop();
-        jQuery('#local-video-cam2').hide();
-      }
-
-      // play remote student on the main host container
-      RTC.studentsDouble[uid][streamIdWithSuffix].play('local-video-cam1');
-
-      // play main host on the student box
-      RTC.localStreams.cam1.stream.play('agora_remote_'+uid);
-    } else {
-      // streamId===window.hostID || streamId===(window.hostID * (window.hostID + 123))
-      if (RTC.remoteStreams[window.hostID]) {
-        RTC.remoteStreams[window.hostID].stop();
-        const idCam2 = window.hostID * (window.hostID + 123);
-        if (RTC.remoteStreams[idCam2]) {
-          RTC.remoteStreams[idCam2].stop();
-          jQuery('#host-video-'+idCam2).hide();
-        }
-
-        RTC.studentsDouble[uid][streamIdWithSuffix].play('host-video-'+window.hostID);
-        RTC.remoteStreams[window.hostID].play('agora_remote_'+uid);
-      }
-    }
-
-    // disable .username-overlay
-    window.AGORA_UTILS.toggleVisibility('#'+uid+'_username', false);
-  } else { // if this action is to restore the main host video:
-
-    if (isMainHost) {
-      RTC.localStreams.cam1.stream.stop();
-
-      streamIdWithSuffix = document.getElementById('local-video-cam1').children[0].id.replace('player_', '');
-      RTC.studentsDouble[uid][streamIdWithSuffix].stop();
-      RTC.studentsDouble[uid][streamIdWithSuffix].play('agora_remote_' + uid);
-
-      RTC.localStreams.cam1.stream.play('local-video-cam1');
-      if (RTC.localStreams.cam2 && RTC.localStreams.cam2.stream) {
-        RTC.localStreams.cam2.stream.play('local-video-cam2');
-        jQuery('#local-video-cam2').show();
-      }
-    } else {
-      if (RTC.remoteStreams[window.hostID]) {
-        RTC.remoteStreams[window.hostID].stop();
-
-        streamIdWithSuffix = document.getElementById('host-video-'+window.hostID).children[0].id.replace('player_', '');
-
-        RTC.studentsDouble[uid][streamIdWithSuffix].stop();
-        RTC.studentsDouble[uid][streamIdWithSuffix].play('agora_remote_' + uid);
-
-        RTC.remoteStreams[window.hostID].play('host-video-' + window.hostID);
-        const idCam2 = window.hostID * (window.hostID + 123);
-        if (RTC.remoteStreams[idCam2]) {
-          RTC.remoteStreams[idCam2].play('host-video-'+idCam2);
-          jQuery('#host-video-'+idCam2).show();
-        }
-      }
-    }
-
-    // disable .username-overlay
-    window.AGORA_UTILS.toggleVisibility('#'+uid+'_username', true);
-  }
-
-
-}
-
 /**
  **
  ** ========== Agora SDK Events ========== 
  **
  **/
-
 function initAgoraEvents() {
   console.log('Starting events...', hostID, userID);
   const noHostImage = jQuery('#nohost-image');

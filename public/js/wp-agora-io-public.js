@@ -32,7 +32,7 @@ window.AGORA_UTILS = {
 
   getRealUserId: function(uid) {
     if (String(uid).indexOf(window.UID_SUFFIX)>0) {
-      const id = String(uid).substring(0, String(uid).length - 5); // remove UID_SUFFIX and Random integer
+      const id = String(uid).substring(0, String(uid).length - window.UID_SUFFIX.length - 1); // remove UID_SUFFIX and Random integer
       return parseInt(id);
     }
 

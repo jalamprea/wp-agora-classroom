@@ -20,6 +20,10 @@ function renderCommnicationShortcode($agora, $attrs) {
     'AgoraCommunicationClient',
     plugin_dir_url( __FILE__ ) . 'js/agora-classroom-client.js',
     array('AgoraSDK'), null );
+  wp_enqueue_script(
+    'AgoraCommunicationUI',
+    plugin_dir_url( __FILE__ ) . 'js/agora-classroom-ui.js',
+    array('AgoraSDK'), null );
 
   $channel = WP_Agora_Channel::get_instance($instance['channel_id']);
   if ($channel) {

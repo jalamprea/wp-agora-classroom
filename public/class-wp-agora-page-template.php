@@ -108,6 +108,9 @@ class WP_Agora_PageTemplate {
 
         wp_enqueue_script( 'agora-classroom-client',
           plugin_dir_url( __FILE__ ) .'js/agora-classroom-client.js', array('jquery'), null, true );
+        wp_enqueue_script( 'agora-classroom-ui',
+          plugin_dir_url( __FILE__ ) .'js/agora-classroom-ui.js', array('agora-classroom-client'), null, true );
+
         wp_enqueue_script('screen-share', 
             plugin_dir_url( __FILE__ ) . "js/screen-share.js", array('jquery'), null, true);
         wp_enqueue_script( 'agora-communication-ui',
@@ -143,6 +146,8 @@ class WP_Agora_PageTemplate {
 
           wp_enqueue_script('broadcast-client',
             plugin_dir_url( __FILE__ ) . "js/agora-broadcast-client.js", array('jquery'), null, true);
+          wp_enqueue_script('broadcast-ui',
+            plugin_dir_url( __FILE__ ) . "js/agora-broadcast-ui.js", array('jquery'), null, true);
           wp_enqueue_script('broadcast-ui', 
             plugin_dir_url( __FILE__ ) . "js/broadcast-ui.js", array('jquery'), null, true);
           wp_enqueue_script('screen-share', 
