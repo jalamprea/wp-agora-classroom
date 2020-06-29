@@ -263,6 +263,9 @@ function createCameraStream(uid, indexCam, cb) {
     });
   
     RTC.localStreams[indexCam].stream = localStream; // keep track of the camera stream for later
+
+    // on agora-classroom-ui swap cameras layout:
+    jQuery('#'+localVideoDiv.id).dblclick(swapMainHostCameras);
     
     // Execute callback after finish this function
     cb && cb();

@@ -130,4 +130,54 @@ function swapVideoStudentAndHost() {
 
 }
 
+
+// swap MainHost Cameras Layout
+function swapMainHostCameras(evt) {
+  const clickedDiv = this;
+  let divToMinimize = null;
+
+  if (clickedDiv.children[0].id.indexOf(window.UID_SUFFIX)>0) {
+    console.log('invalid click on student div')
+    return;
+  }
+
+  if (clickedDiv.style.position==='fixed') {
+    // restore styles
+    clickedDiv.style.position = null;
+    clickedDiv.style.top = null;
+    clickedDiv.style.left = null;
+    clickedDiv.style.width = null;
+    clickedDiv.style.height = null;
+    clickedDiv.style.zIndex = null;
+    return;
+  }
+
+  if (clickedDiv.id==='local-video-cam1') {
+    divToMinimize = document.getElementById('local-video-cam2');
+  } else {
+    divToMinimize = document.getElementById('local-video-cam1');
+  }
+
+  // avoid double click on already maximized div
+  if (divToMinimize.style.position==='fixed') {
+    return;
+  }
+
+  let currentPos = document.getElementById('local-video-cam1').getBoundingClientRect();
+
+  divToMinimize.style.position = 'fixed';
+  divToMinimize.style.left = currentPos.left + 'px';
+  divToMinimize.style.top = currentPos.top + 'px';
+  divToMinimize.style.zIndex = 999;
+  divToMinimize.style.width = '200px';
+  divToMinimize.style.height = '120px';
+
+  setTimeout(function(){
+    currentPos = clickedDiv.getBoundingClientRect();
+    divToMinimize.style.left = currentPos.left + 'px';
+    divToMinimize.style.top = currentPos.top + 'px';
+  }, 1);
+
+
+}
 // EOF

@@ -89,7 +89,7 @@ window.AGORA_COMMUNICATION_UI = {
       const camSettingsModal = jQuery('#camSettingsModal');
       camSettingsModal.on('show.bs.modal', function (event) {
         jQuery('#list-camera1').val(RTC.localStreams.cam1.device.deviceId);
-        jQuery('#list-camera2').val(RTC.localStreams.cam2.device.deviceId);
+        RTC.localStreams.cam2.device && jQuery('#list-camera2').val(RTC.localStreams.cam2.device.deviceId);
       });
 
       camSettingsModal.find('.btn-primary').click(function(evt) {

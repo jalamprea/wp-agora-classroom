@@ -105,10 +105,9 @@ html { height: auto !important; }
 .videoItem {
   background-color: black;
   border: 1px solid #666;
-  height: calc(100vw * (16/9));
-  /* height: 80%; */
+  height: calc(100vw * (4/3));
   max-width: 80%;
-  max-height: 90%;
+  max-height: 95%;
   flex: 1;
 }
 @media screen and (min-width: 1200px) {
@@ -165,7 +164,8 @@ html { height: auto !important; }
 .agora-fullscreen-container #mute-overlay { left: 33%; bottom: -3px; }
 
 #main-video-container {
-  max-height: calc(100% - 58px);
+  height: calc(100% - 58px);
+  overflow: hidden;
 }
 
 #main-video-container img {
