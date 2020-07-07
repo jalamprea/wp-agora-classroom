@@ -10,6 +10,10 @@ function swapVideoStudentAndHost() {
     console.log('no host joined... action ignored');
     return;
   }
+  if (window.screenShareActive) {
+    console.log('screen in progress... action ignored');
+    return;
+  }
 
   const uid = this.id.replace('remote-container-', '');
   const videoPlayer = jQuery(this).find('video');
@@ -127,7 +131,6 @@ function swapVideoStudentAndHost() {
     // play mainHost on the new student div
     mainHostStream.play('agora_remote_' + newUid);
   }
-
 }
 
 
@@ -177,7 +180,56 @@ function swapMainHostCameras(evt) {
     divToMinimize.style.left = currentPos.left + 'px';
     divToMinimize.style.top = currentPos.top + 'px';
   }, 1);
+}
 
 
+
+// REMOTE STREAMS UI
+function addRemoteStreamMiniView(remoteStream){
+  let streamId = remoteStream.getId();
+  if (String(streamId).indexOf(window.UID_SUFFIX)>0) {
+      streamId = String(streamId).substring(0, String(streamId).length - 5); // remove UID_SUFFIX and Random integer
+      streamId = parseInt(streamId);
+    }
+  
+  console.log('Adding remote to miniview:', streamId);
+  // append the remote stream template to #remote-streams
+  const remoteStreamsDiv = jQuery('#remote-streams');
+  let playerAvailable = false;
+  if (remoteStreamsDiv.length>0 && remoteStreamsDiv.find('#remote-container-'+streamId).length===0) {
+    playerAvailable = true;
+    remoteStreamsDiv.append(
+      jQuery('<div/>', {'id': 'remote-container-'+streamId,  'class': 'remote-stream-container student-video'}).append(
+        jQuery('<div/>', {'id': streamId + '_mute', 'class': 'mute-overlay'}).append(
+            jQuery('<i/>', {'class': 'fas fa-microphone-slash'})
+        ),
+        jQuery('<div/>', {'id': streamId + '_no-video', 'class': 'no-video-overlay text-center'}).append(
+          jQuery('<i/>', {'class': 'fas fa-user'})
+        ),
+        jQuery('<div/>', {'id': streamId + '_switch', 'class': 'switch-overlay'}).append(
+            jQuery('<i/>', {'class': 'fas fa-sync'})
+        ),
+        jQuery('<div/>', {'id': streamId + '_username', 'class': 'username-overlay'}),
+        jQuery('<div/>', {'id': 'agora_remote_' + streamId, 'class': 'remote-video'})
+      )
+    );
+
+    jQuery('#'+streamId+'_switch').click(function(evt){
+      evt.preventDefault();
+      
+      const uid = this.id.replace('_switch', '');
+      const parentPlayer = jQuery(this.parentElement).find('#agora_remote_'+uid);
+      const currentVideoId = parentPlayer[0].children[0].id.replace('player_', '');
+      // console.log('Real UID:', currentVideoId);
+      // console.log('change cam for user:', uid);
+      const nextStream = Object.values(RTC.studentsDouble[uid]).find(s => s.streamId!=currentVideoId);
+      RTC.studentsDouble[uid][currentVideoId].stop();
+      nextStream.play('agora_remote_' + uid);
+    });
+  }
+  playerAvailable && remoteStream.play('agora_remote_' + streamId); 
+
+  var containerId = '#' + 'remote-container-' + streamId;
+  jQuery(containerId).dblclick(swapVideoStudentAndHost);
 }
 // EOF

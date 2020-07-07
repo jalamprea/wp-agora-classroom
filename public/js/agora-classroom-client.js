@@ -32,7 +32,7 @@ window.screenShareActive = false;
 window.AGORA_COMMUNICATION_CLIENT = {
   initClientAndJoinChannel: initClientAndJoinChannel,
   agoraJoinChannel: agoraJoinChannel,
-  addRemoteStreamMiniView: addRemoteStreamMiniView,
+  // addRemoteStreamMiniView: addRemoteStreamMiniView,
   agoraLeaveChannel: agoraLeaveChannel
 };
 
@@ -147,7 +147,8 @@ async function initClientAndJoinChannel(agoraAppId, channelName) {
     }
 
     if (!isMainHost) {
-      window.AGORA_UTILS.toggleVisibility('#cam-settings-btn', isMainHost);
+      // window.AGORA_UTILS.toggleVisibility('#cam-settings-btn', isMainHost);
+      jQuery('.only-main-host').remove();
     }
 
     // Screenshare Client:
@@ -155,7 +156,7 @@ async function initClientAndJoinChannel(agoraAppId, channelName) {
   } else {
     // TODO: show message for non-logged users
     jQuery('#non-logged-msg').show();
-    jQuery('#cam-settings-btn').remove();
+    jQuery('.only-main-host').remove();
   }
 
 }
@@ -277,7 +278,7 @@ function createCameraStream(uid, indexCam, cb) {
 
 function agoraLeaveChannel() {
   
-  if(screenShareActive) {
+  if (screenShareActive) {
     window.AGORA_SCREENSHARE_UTILS.stopScreenShare();
   }
 
@@ -332,54 +333,6 @@ function agoraLeaveChannel() {
 }
 
 
-// REMOTE STREAMS UI
-function addRemoteStreamMiniView(remoteStream){
-  let streamId = remoteStream.getId();
-  if (String(streamId).indexOf(window.UID_SUFFIX)>0) {
-      streamId = String(streamId).substring(0, String(streamId).length - 5); // remove UID_SUFFIX and Random integer
-      streamId = parseInt(streamId);
-    }
-  
-  console.log('Adding remote to miniview:', streamId);
-  // append the remote stream template to #remote-streams
-  const remoteStreamsDiv = jQuery('#remote-streams');
-  let playerAvailable = false;
-  if (remoteStreamsDiv.length>0 && remoteStreamsDiv.find('#remote-container-'+streamId).length===0) {
-    playerAvailable = true;
-    remoteStreamsDiv.append(
-      jQuery('<div/>', {'id': 'remote-container-'+streamId,  'class': 'remote-stream-container student-video'}).append(
-        jQuery('<div/>', {'id': streamId + '_mute', 'class': 'mute-overlay'}).append(
-            jQuery('<i/>', {'class': 'fas fa-microphone-slash'})
-        ),
-        jQuery('<div/>', {'id': streamId + '_no-video', 'class': 'no-video-overlay text-center'}).append(
-          jQuery('<i/>', {'class': 'fas fa-user'})
-        ),
-        jQuery('<div/>', {'id': streamId + '_switch', 'class': 'switch-overlay'}).append(
-            jQuery('<i/>', {'class': 'fas fa-sync'})
-        ),
-        jQuery('<div/>', {'id': streamId + '_username', 'class': 'username-overlay'}),
-        jQuery('<div/>', {'id': 'agora_remote_' + streamId, 'class': 'remote-video'})
-      )
-    );
-
-    jQuery('#'+streamId+'_switch').click(function(evt){
-      evt.preventDefault();
-      
-      const uid = this.id.replace('_switch', '');
-      const parentPlayer = jQuery(this.parentElement).find('#agora_remote_'+uid);
-      const currentVideoId = parentPlayer[0].children[0].id.replace('player_', '');
-      // console.log('Real UID:', currentVideoId);
-      // console.log('change cam for user:', uid);
-      const nextStream = Object.values(RTC.studentsDouble[uid]).find(s => s.streamId!=currentVideoId);
-      RTC.studentsDouble[uid][currentVideoId].stop();
-      nextStream.play('agora_remote_' + uid);
-    });
-  }
-  playerAvailable && remoteStream.play('agora_remote_' + streamId); 
-
-  var containerId = '#' + 'remote-container-' + streamId;
-  jQuery(containerId).dblclick(swapVideoStudentAndHost);
-}
 
 /**
  **
@@ -430,17 +383,6 @@ function initAgoraEvents() {
     const remoteStream = evt.stream;
     let remoteId = window.AGORA_UTILS.getRealUserId( remoteStream.getId() );
     console.log('Stream-subscribed', remoteId);
-    
-
-    if (remoteId !== remoteStream.getId() ) {
-      if (!RTC.studentsDouble[remoteId]) {
-        RTC.studentsDouble[remoteId] = {};
-      } else {
-        // if the student already exists.. I should paint a swithc video button in the student video.
-        jQuery('#remote-container-' + remoteId).find('.switch-overlay').show();
-      }
-      RTC.studentsDouble[remoteId][ remoteStream.getId() ] = remoteStream;
-    }
 
     if (!RTC.remoteStreams[remoteId]) {
       RTC.remoteStreams[remoteId] = remoteStream;
@@ -449,6 +391,21 @@ function initAgoraEvents() {
       console.info('===> DUPLICATED STREAM-SUBSCRIBED', remoteId)
     }
     // console.log('Stream subscribed:', remoteId);
+    
+    let isStudent = false;
+    if (remoteId !== remoteStream.getId() ) {
+      if (!RTC.studentsDouble[remoteId]) {
+        RTC.studentsDouble[remoteId] = {};
+      } else {
+        // if the student already exists.. I should paint a swithc video button in the student video.
+        jQuery('#remote-container-' + remoteId).find('.switch-overlay').show();
+      }
+      RTC.studentsDouble[remoteId][ remoteStream.getId() ] = remoteStream;
+      isStudent = true;
+    } else {
+      // this could be a screenShare stream... I need to validate if it is a random uid
+      isStudent = false;
+    }
 
 
     if (!window.isMainHost) {
@@ -465,7 +422,22 @@ function initAgoraEvents() {
       } else {
         // this stream is from another student.
         // hostVideoDiv.classList.add('student-video');
-        addRemoteStreamMiniView(remoteStream);
+        if (isStudent) {
+          addRemoteStreamMiniView(remoteStream);
+        } else {
+          // this is a screenShare stream, so we need:
+
+          // Stop current main host cameras:
+          RTC.remoteStreams[window.hostID].stop();
+          const id_cam2 = window.hostID * (window.hostID + 123);
+          if (RTC.remoteStreams[id_cam2] && RTC.remoteStreams[id_cam2].stop) {
+            RTC.remoteStreams[id_cam2].stop();
+            jQuery('#host-video-'+id_cam2).hide();
+          }
+
+          // play screenshare over main host camera div:
+          remoteStream.play('host-video-' + window.hostID);
+        }
       }
     } else {
       // I'm the host, so, i'm receiving streams from students
@@ -473,11 +445,8 @@ function initAgoraEvents() {
     }
 
 
-    // Play stream on the main canvas
-    console.log('PAINTING REMOTE:', remoteId);
-
-    // avoid render the second host camera:
-    if(remoteId!==(window.hostID * (window.hostID + 123))) {
+    if (isStudent || remoteId===window.hostID) {
+      console.log('Getting remote avatar:', remoteId);
       window.AGORA_UTILS.agora_getUserAvatar(remoteId, function(gravatar) {
         // console.log('callback gravatar:', gravatar);
         const url = gravatar.avatar.url;
@@ -506,10 +475,24 @@ function initAgoraEvents() {
     let streamId = window.AGORA_UTILS.getRealUserId(evt.stream.getId());
 
     if (!isMainHost) {
-      if (streamId===window.hostID || streamId===(window.hostID * (window.hostID + 123))) {
+      const host_id_cam2 = window.hostID * (window.hostID + 123);
+      if (streamId===window.hostID || streamId===host_id_cam2) {
         jQuery('#host-video-'+streamId).remove();
         RTC.hostJoined = false;
         noHostImage.show();
+      } else {
+        // if this is not an student stream... is a random screnshare uid:
+        if (streamId === evt.stream.getId() ) {
+          console.log('Stop screenshare...');
+          RTC.remoteStreams[streamId].stop(); // stop playing the feed
+          delete RTC.remoteStreams[streamId]; // remove stream from list
+
+          RTC.remoteStreams[window.hostID].play('host-video-' + window.hostID);
+          if (RTC.remoteStreams[host_id_cam2] && RTC.remoteStreams[host_id_cam2].play) {
+            RTC.remoteStreams[host_id_cam2].play('host-video-' + host_id_cam2)
+            jQuery('#host-video-' + host_id_cam2).show();
+          }
+        }
       }
     }
 

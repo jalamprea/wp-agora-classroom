@@ -6,6 +6,10 @@ window.AGORA_SCREENSHARE_UTILS = {
 
   // SCREEN SHARING
   initScreenShare: function (cb) {
+    // const client = window.RTC && window.RTC.localStreams ? RTC.localStreams.screen
+    if (!window.screenClient) {
+      window.screenClient = AgoraRTC.createClient({mode: 'rtc', codec: 'vp8'});
+    }
     window.screenClient.init(agoraAppId, function (e) {
       AgoraRTC.Logger.info("AgoraRTC screenClient initialized", e);
       window.AGORA_SCREENSHARE_UTILS.joinChannelAsScreenShare(cb);
@@ -19,9 +23,13 @@ window.AGORA_SCREENSHARE_UTILS = {
   },
 
   joinChannelAsScreenShare: function (cb) {
-    var userId = null; // window.userID or set to null to auto generate uid on successfull connection
+    console.log('Starting screen share...');
+    // let userId = window.userID || 0;// window.userID or set to null to auto generate uid on successfull connection
+    let userId = 0;// window.userID or set to null to auto generate uid on successfull connection
+    const localScreen = window.RTC && window.RTC.localStreams ? RTC.localStreams.screen : window.localStreams.screen;
+
     var successJoin = function(uid) {
-      localStreams.screen.id = uid;  // keep track of the uid of the screen stream.
+      localScreen.id = uid;  // keep track of the uid of the screen stream.
       
       // Create the stream for screen sharing.
       var screenStream = AgoraRTC.createStream({
@@ -29,13 +37,15 @@ window.AGORA_SCREENSHARE_UTILS = {
         audio: false, // Set the audio attribute as false to avoid any echo during the call.
         video: false,
         screen: true, // screen stream
-        extensionId: 'minllpmhdgpndnkomcoccfekfegnlikg', // Google Chrome:
+        screenAudio: true, // audio from the screen
+        // extensionId: 'minllpmhdgpndnkomcoccfekfegnlikg', // Google Chrome:
         mediaSource:  'screen', // Firefox: 'screen', 'application', 'window' (select one)
       });
       screenStream.setScreenProfile(screenVideoProfile); // set the profile of the screen
       screenStream.init(function(){
         AgoraRTC.Logger.info("getScreen successful");
-        localStreams.screen.stream = screenStream; // keep track of the screen stream
+        localScreen.stream = screenStream; // keep track of the screen stream
+
         window.screenClient.publish(screenStream, function (err) {
           AgoraRTC.Logger.error("[ERROR] : publish screen stream error: " + err);
         });
@@ -45,8 +55,8 @@ window.AGORA_SCREENSHARE_UTILS = {
         cb(null, true);
       }, function (err) {
         AgoraRTC.Logger.error("[ERROR] : getScreen failed", err);
-        localStreams.screen.id = ""; // reset screen stream id
-        localStreams.screen.stream = {}; // reset the screen stream
+        localScreen.id = ""; // reset screen stream id
+        localScreen.stream = {}; // reset the screen stream
         window.screenShareActive = false; // resest screenShare
         cb(err, null);
         window.AGORA_SCREENSHARE_UTILS.toggleScreenShareBtn(); // toggle the button icon back (will appear disabled)
@@ -63,26 +73,41 @@ window.AGORA_SCREENSHARE_UTILS = {
     window.AGORA_SCREENSHARE_UTILS.agora_generateAjaxToken(function(err, token) {
       if (err) {
         AgoraRTC.Logger.error("[TOKEN ERROR] : Get Token failed:", err);
+        window.screenClient = null;
         cb(err, null);
         return false;
       }
 
       window.screenClient.join(token, window.channelName, userId, successJoin, failedJoin);
 
-    });
+    }, userId);
 
     window.screenClient.on('stream-published', function (evt) {
-      AgoraRTC.Logger.info("Publish screen stream successfully");
-      localStreams.camera.stream.muteVideo(); // disable the local video stream (will send a mute signal)
-      localStreams.camera.stream.stop(); // stop playing the local stream
+      const localCamera = window.RTC && window.RTC.localStreams ? RTC.localStreams.cam1 : localStreams.camera;
+      
+      AgoraRTC.Logger.info("ScreenShare stream published successfully");
+      localCamera.stream.muteVideo(); // disable the local video stream (will send a mute signal)
+      localCamera.stream.stop(); // stop playing the local stream
+
+      if (window.isMainHost) {
+        if (window.RTC.localStreams.cam2.id!=="") {
+          window.RTC.localStreams.cam2.stream.stop();
+          jQuery('#local-video-cam2').hide();
+        }
+        
+        // play stream on the main container
+        evt.stream.play('local-video-cam1');
+      }
+      
       // TODO: add logic to swap main video feed back from container
-      if (typeof mainStreamId !== 'undefined') {
+      /* if (typeof mainStreamId !== 'undefined') {
         remoteStreams[mainStreamId].stop(); // stop the main video stream playback
         
         if (window.AGORA_COMMUNICATION_CLIENT.addRemoteStreamMiniView) {
           window.AGORA_COMMUNICATION_CLIENT.addRemoteStreamMiniView(remoteStreams[mainStreamId]); // send the main video stream to a container
         }
-      }
+      } */
+
       // localStreams.screen.stream.play('full-screen-video'); // play the screen share as full-screen-video (vortext effect?)
       jQuery("#video-btn").prop("disabled",true); // disable the video button (as cameara video stream is disabled)
     });
@@ -94,22 +119,31 @@ window.AGORA_SCREENSHARE_UTILS = {
   },
 
   stopScreenShare: function (cb) {
-    localStreams.screen.stream.muteVideo(); // disable the local video stream (will send a mute signal)
-    localStreams.screen.stream.stop(); // stop playing the local stream
-    localStreams.camera.stream.enableVideo(); // enable the camera feed
+    const localScreen = window.RTC && window.RTC.localStreams ? RTC.localStreams.screen : window.localStreams.screen;
+    const localCamera = window.RTC && window.RTC.localStreams ? RTC.localStreams.cam1 : localStreams.camera;
 
-    var videoContainer = window.agoraMode==='communication' ? 'local-video' : 'full-screen-video';
-    localStreams.camera.stream.play(videoContainer); // play the camera within the full-screen-video div
+    localScreen.stream.muteVideo(); // disable the local video stream (will send a mute signal)
+    localScreen.stream.stop(); // stop playing the local stream
+    localCamera.stream.enableVideo(); // enable the camera feed
+
+    var videoContainer = window.agoraMode==='communication' ? 'local-video-cam1' : 'full-screen-video';
+    localCamera.stream.play(videoContainer); // play the camera within the full-screen-video div
     jQuery("#video-btn").prop("disabled",false);
+
+    if (window.isMainHost && window.RTC && window.RTC.localStreams && RTC.localStreams.cam2.stream.play) {
+      RTC.localStreams.cam2.stream.play('local-video-cam2');
+      jQuery('#local-video-cam2').show();
+    }
+
     window.screenClient.leave(function() {
       window.screenShareActive = false; 
       AgoraRTC.Logger.info("screen client leaves channel");
       jQuery("#screen-share-btn").prop("disabled", false); // enable button
-      window.screenClient.unpublish(localStreams.screen.stream); // unpublish the screen client
-      localStreams.screen.stream.close(); // close the screen client stream
-      localStreams.screen.id = ""; // reset the screen id
-      localStreams.screen.stream = {}; // reset the stream obj
-      cb(null, true);
+      window.screenClient.unpublish(localScreen.stream); // unpublish the screen client
+      localScreen.stream.close(); // close the screen client stream
+      localScreen.id = ""; // reset the screen id
+      localScreen.stream = {}; // reset the stream obj
+      cb && cb(null, true);
     }, function(err) {
       AgoraRTC.Logger.info("client leave failed ", err); //error handling
       cb(err, null);
@@ -129,7 +163,7 @@ window.AGORA_SCREENSHARE_UTILS = {
         cb('Token not available', null);
       }
     }).fail(function(err){
-      console.error(err);
+      // console.error(err);
       if(err && err.error) {
         cb(err.error, null);
       } else {
