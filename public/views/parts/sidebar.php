@@ -32,7 +32,7 @@
                 <span class="menu-collapsed"> <?php _e('Participants', 'agoraio'); ?> <span class="badge badge-pill badge-primary ml-2">0</span></span>
             </div>
         </a>
-        <a id="cam-settings-btn" data-toggle="modal" data-target="#camSettingsModal" href="#" class="bg-dark list-group-item list-group-item-action d-flex only-main-host" title="Participants List">
+        <a id="cam-settings-btn" data-toggle="modal" data-target="#camSettingsModal" href="#" class="bg-dark list-group-item list-group-item-action d-flex" title="Participants List">
             <div class="w-100 justify-content-start align-items-center">
                 <span class="fas fa-camera fa-fw mr-3"></span>
                 
