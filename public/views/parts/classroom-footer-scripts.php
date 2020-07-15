@@ -1,7 +1,8 @@
 <script>
     // video profile settings
     window.cameraVideoProfile = '<?php echo $instance['videoprofile'] ?>'; // 640x480 @ 30fps & 750kbs
-    window.screenVideoProfile = '<?php echo $instance['screenprofile'] ?>';
+    // window.screenVideoProfile = '<?php echo $instance['screenprofile'] ?>';
+    window.screenVideoProfile = '720p_2';
     window.addEventListener('load', function() {
       window.agoraMode = 'communication';
       window.agoraAppId = '<?php echo $agora->settings['appId'] ?>'; // set app id

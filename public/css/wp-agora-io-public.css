@@ -309,6 +309,9 @@ body .agora {
   display: inline-block;
 }
 
+.agora .modal { position: absolute; }
+.modal-backdrop { z-index: 999; }
+
 #external-injest-config label, #rtmp-config label {
   margin: 0 .5rem .5rem 0;
 }

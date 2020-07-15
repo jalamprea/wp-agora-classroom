@@ -105,7 +105,7 @@ $current_user       = wp_get_current_user();
     </div>
     <!-- end Modal -->
 
-    <!-- External Injest Url Modal -->
+    <!-- External Inject Url Modal -->
     <div class="modal fade slideInLeft animated" id="add-external-source-modal" tabindex="-1" role="dialog" aria-labelledby="add-external-source-url-label" aria-hidden="true" data-keyboard=true>
       <div class="modal-dialog">
         <div class="modal-content">

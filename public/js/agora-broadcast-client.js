@@ -25,7 +25,7 @@ function agoraJoinChannel() {
   });
   
   window.agoraClient.join(window.agoraToken, window.channelName, userId, function(uid) {
-      createCameraStream(uid, {});
+      createCameraStream(uid);
       window.localStreams.uid = uid; // keep track of the stream uid  
       AgoraRTC.Logger.info('User ' + uid + ' joined channel successfully');
   }, function(err) {
@@ -34,15 +34,24 @@ function agoraJoinChannel() {
 }
 
 // video streams for channel
-function createCameraStream(uid, deviceIds) {
-  AgoraRTC.Logger.info('Creating stream with sources: ' + JSON.stringify(deviceIds));
-
-  var localStream = AgoraRTC.createStream({
+async function createCameraStream(uid) {
+  const stream = await navigator.mediaDevices.getUserMedia({video: true});
+  const devices = await navigator.mediaDevices.enumerateDevices();
+  window.availableCams = devices.filter(device => device.kind === "videoinput");
+  
+  const streamParams = {
     streamID: uid,
     audio: true,
     video: true,
     screen: false
-  });
+  };
+  if (window.availableCams.length>1) {
+    const builtIn = window.availableCams.find(device => device.label.indexOf('Built-in')>0);
+    if (builtIn) {
+      streamParams.cameraId = builtIn.deviceId;
+    }
+  }
+  var localStream = AgoraRTC.createStream(streamParams);
   localStream.setVideoProfile(window.cameraVideoProfile);
 
   // The user has granted access to the camera and mic.
@@ -116,6 +125,13 @@ function changeStreamSource (deviceIndex, deviceType) {
 
   if(deviceType === "audio") {
     deviceId = window.devices.mics[deviceIndex].deviceId;
+  }
+
+  // detect firefox browsers.. it is not allowed on firefox :(
+  const isFirefoxBrowser = navigator.userAgent.includes('Firefox');
+  if (isFirefoxBrowser) {
+    alert('Feature not allowed on Firefox!')
+    return;
   }
 
   window.localStreams.camera.stream.switchDevice(deviceType, deviceId, function(){

@@ -17,6 +17,12 @@ window.AGORA_COMMUNICATION_UI = {
     });
 
     jQuery("#screen-share-btn").click(function() {
+      const isSafari = navigator.vendor.match(/[Aa]+pple/g);
+      if (isSafari && isSafari.length>0) {
+        alert('Screen share is not supported on safari');
+        return;
+      }
+
       window.AGORA_SCREENSHARE_UTILS.toggleScreenShareBtn(); // set screen share button icon
       var loaderIcon = jQuery(this).find('.spinner-border');
       var closeIcon = jQuery('#screen-share-icon');
@@ -84,35 +90,33 @@ window.AGORA_COMMUNICATION_UI = {
 
 
     // Camera settings:
-    if (isMainHost) {
 
-      const camSettingsModal = jQuery('#camSettingsModal');
-      camSettingsModal.on('show.bs.modal', function (event) {
-        jQuery('#list-camera1').val(RTC.localStreams.cam1.device.deviceId);
-        RTC.localStreams.cam2.device && jQuery('#list-camera2').val(RTC.localStreams.cam2.device.deviceId);
-      });
+    const camSettingsModal = jQuery('#camSettingsModal');
+    camSettingsModal.on('show.bs.modal', function (event) {
+      jQuery('#list-camera1').val(RTC.localStreams.cam1.device.deviceId);
+      RTC.localStreams.cam2.device && jQuery('#list-camera2').val(RTC.localStreams.cam2.device.deviceId);
+    });
 
-      camSettingsModal.find('.btn-primary').click(function(evt) {
-        const cam1 = jQuery('#list-camera1').val();
-        const cam2 = jQuery('#list-camera2').val();
+    camSettingsModal.find('.btn-primary').click(function(evt) {
+      const cam1 = jQuery('#list-camera1').val();
+      const cam2 = jQuery('#list-camera2').val();
 
-        if (cam1===cam2) {
-          alert('Plase select different source for each camera');
-          return;
-        }
+      if (cam1===cam2) {
+        alert('Plase select different source for each camera');
+        return;
+      }
 
-        RTC.localStreams.cam1.device = window.availableCams.find(cam => cam.deviceId===cam1);
-        RTC.localStreams.cam2.device = window.availableCams.find(cam => cam.deviceId===cam2);
-        
-        RTC.localStreams.cam2.device.enabled = jQuery('#enableCam2').prop('checked');
+      RTC.localStreams.cam1.device = window.availableCams.find(cam => cam.deviceId===cam1);
+      RTC.localStreams.cam2.device = window.availableCams.find(cam => cam.deviceId===cam2);
+      
+      RTC.localStreams.cam2.device.enabled = jQuery('#enableCam2').prop('checked');
 
-        const newCamsArray = [RTC.localStreams.cam1.device, RTC.localStreams.cam2.device, RTC.localStreams.cam2.device.enabled];
-        window.localStorage.setItem('AGORA_DEVICES_ORDER', JSON.stringify(newCamsArray));
-        console.log('New camera settings updated!');
+      const newCamsArray = [RTC.localStreams.cam1.device, RTC.localStreams.cam2.device, RTC.localStreams.cam2.device.enabled];
+      window.localStorage.setItem('AGORA_DEVICES_ORDER', JSON.stringify(newCamsArray));
+      console.log('New camera settings updated!');
 
-        camSettingsModal.modal('hide');
-      })
-    }
+      camSettingsModal.modal('hide');
+    })
 
     jQuery("#users-btn").click(function(e) {
       e.preventDefault();

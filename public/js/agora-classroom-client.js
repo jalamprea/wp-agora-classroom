@@ -82,7 +82,7 @@ async function countCameras() {
       const devices = await navigator.mediaDevices.enumerateDevices();
       window.availableCams = devices.filter(device => device.kind === "videoinput");
 
-      if (isMainHost && window.availableCams.length>1) {
+      if (window.availableCams.length>1) {
         window.availableCams.forEach(function (video) {
             jQuery("<option/>", {
               value: video.deviceId,
@@ -128,12 +128,12 @@ async function initClientAndJoinChannel(agoraAppId, channelName) {
 
   // Check if the current user is logged in:
   if (window.userID!==0) {
-    const cams = await countCameras();
-    if (cams>0) {
+    const countCams = await countCameras();
+    if (countCams>0) {
       console.log('=== Starting client 1')
       initCam("cam1", function() {
 
-        if (cams>1 && window.isMainHost && RTC.localStreams.cam2.device.enabled) {
+        if (countCams>1 && window.isMainHost && RTC.localStreams.cam2.device.enabled) {
           console.log('=== Starting client 2');
           initCam("cam2");
         }
@@ -146,9 +146,14 @@ async function initClientAndJoinChannel(agoraAppId, channelName) {
       initAgoraEvents();
     }
 
-    if (!isMainHost) {
-      // window.AGORA_UTILS.toggleVisibility('#cam-settings-btn', isMainHost);
+    // remove all elements that are not allowed for students
+    if (!window.isMainHost) {
       jQuery('.only-main-host').remove();
+    }
+
+    // disable camera settings if I have only one camera
+    if (countCams===1) {
+      jQuery('#cam-settings-btn').remove();
     }
 
     // Screenshare Client:
@@ -208,7 +213,7 @@ function agoraJoinChannel(channelName, indexCam, cb) {
     userId *= (userId + 123);
   }
 
-  if (!isMainHost) {
+  if (!window.isMainHost) {
     const n = Math.floor(Math.random() * 10);
     userId = parseInt(String(userId) + n + UID_SUFFIX);
   }
@@ -248,7 +253,7 @@ function createCameraStream(uid, indexCam, cb) {
     const localVideoDiv = document.createElement('div');
     localVideoDiv.id = 'local-video-' + indexCam;
 
-    if (isMainHost) {
+    if (window.isMainHost) {
       localVideoDiv.classList.add('videoItem');
       document.getElementById('main-video-container').appendChild(localVideoDiv);
     } else {
@@ -319,7 +324,7 @@ function agoraLeaveChannel() {
   });
 
   // second camera on main hosts:
-  if (isMainHost) {
+  if (window.isMainHost) {
     RTC.client.cam2 && RTC.client.cam2.leave(() => {
       RTC.localStreams.cam2.stream.stop() // stop the camera stream playback
       RTC.client.cam2.unpublish(RTC.localStreams.cam2.stream); // unpublish the camera stream
@@ -364,7 +369,7 @@ function initAgoraEvents() {
       noHostImage.hide();
     }
 
-    if(!RTC.hostJoined && !isMainHost && streamId!==hostID) {
+    if(!RTC.hostJoined && !window.isMainHost && streamId!==hostID) {
       noHostImage.show();
     }
 
@@ -474,7 +479,7 @@ function initAgoraEvents() {
     console.log('peer-leave:', evt);
     let streamId = window.AGORA_UTILS.getRealUserId(evt.stream.getId());
 
-    if (!isMainHost) {
+    if (!window.isMainHost) {
       const host_id_cam2 = window.hostID * (window.hostID + 123);
       if (streamId===window.hostID || streamId===host_id_cam2) {
         jQuery('#host-video-'+streamId).remove();
