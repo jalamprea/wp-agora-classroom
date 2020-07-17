@@ -17,7 +17,7 @@ window.AGORA_SCREENSHARE_UTILS = {
 
       // TODO: add logic to swap button
     }, function (err) {
-      AgoraRTC.Logger.error("[ERROR] : AgoraRTC screenClient init failed", err);
+      AgoraRTC.Logger.error("[SCREEN SHARE ERROR]: AgoraRTC screenClient init failed", err);
       cb(err, null);
     });  
   },
@@ -59,9 +59,9 @@ window.AGORA_SCREENSHARE_UTILS = {
         localScreen.stream = {}; // reset the screen stream
         window.screenShareActive = false; // resest screenShare
         cb(err, null);
-        window.AGORA_SCREENSHARE_UTILS.toggleScreenShareBtn(); // toggle the button icon back (will appear disabled)
+        // window.AGORA_SCREENSHARE_UTILS.toggleScreenShareBtn(); // toggle the button icon back (will appear disabled)
         if (err&& err.info) {
-          alert(err.info);
+          alert('ScreenShare Error: ' + err.info);
         }
       });
     };

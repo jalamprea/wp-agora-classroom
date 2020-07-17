@@ -33,6 +33,9 @@ window.AGORA_COMMUNICATION_UI = {
         loaderIcon.hide();
         closeIcon.show();
         // TODO: is not needed but I could capture the callback result here...
+        if (err) {
+          window.AGORA_SCREENSHARE_UTILS.toggleScreenShareBtn();
+        }
       }
 
       jQuery("#screen-share-btn").prop("disabled",true); // disable the button on click
