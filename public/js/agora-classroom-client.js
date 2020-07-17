@@ -37,6 +37,17 @@ window.AGORA_COMMUNICATION_CLIENT = {
 };
 
 function initCameraLocalSettings() {
+  const resetDefaultsCams = function() {
+    RTC.localStreams.cam1.device = window.availableCams[0];
+    RTC.localStreams.cam2.device = window.availableCams[1];
+
+    jQuery('#enableCam2').prop('checked', true);
+    RTC.localStreams.cam2.device.enabled = true;
+    
+    window.localStorage.setItem('AGORA_DEVICES_ORDER', JSON.stringify(window.availableCams));
+    console.log('Resseting Camera settings!');
+  }
+
   const localDataRaw = window.localStorage.getItem('AGORA_DEVICES_ORDER');
   if ( localDataRaw ) {
     const localData = JSON.parse(localDataRaw);
@@ -44,6 +55,10 @@ function initCameraLocalSettings() {
 
     RTC.localStreams.cam1.device = window.availableCams.find(cam => cam.label===localData[0].label);
     RTC.localStreams.cam2.device = window.availableCams.find(cam => cam.label===localData[1].label);
+
+    if (!RTC.localStreams.cam1.device || !RTC.localStreams.cam2.device) {
+      resetDefaultsCams();
+    }
 
     if (localData.length===3) {
       RTC.localStreams.cam2.device.enabled = localData[2];
@@ -57,16 +72,10 @@ function initCameraLocalSettings() {
     if (!RTC.localStreams.cam1.device || !RTC.localStreams.cam2.device) {
       window.localStorage.removeItem('AGORA_DEVICES_ORDER');
       initCameraLocalSettings();
+      return;
     }
   } else {
-    RTC.localStreams.cam1.device = window.availableCams[0];
-    RTC.localStreams.cam2.device = window.availableCams[1];
-
-    jQuery('#enableCam2').prop('checked', true);
-    RTC.localStreams.cam2.device.enabled = true;
-    
-    window.localStorage.setItem('AGORA_DEVICES_ORDER', JSON.stringify(window.availableCams));
-    console.log('Resseting Camera settings!');
+    resetDefaultsCams()
   }
 
   jQuery('#list-camera1').val(RTC.localStreams.cam1.device.deviceId);

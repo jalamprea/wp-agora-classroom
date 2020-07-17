@@ -36,7 +36,7 @@ window.AGORA_COMMUNICATION_UI = {
       }
 
       jQuery("#screen-share-btn").prop("disabled",true); // disable the button on click
-      if(window.screenShareActive){
+      if (window.screenShareActive) {
         window.AGORA_SCREENSHARE_UTILS.stopScreenShare(toggleLoader);
       } else {
         window.AGORA_SCREENSHARE_UTILS.initScreenShare(toggleLoader);
