@@ -258,7 +258,7 @@ function render_agoraio_channel_form_appearance($channel) {
         'false' => __('Hide icon', 'agoraio')
       ), $appearance, '')
     ?>
-    <tr>
+    <tr id="activeButtonColorRow">
       <th scope="row"><label for="activeButtonColor"><?php _e('Active Button Color', 'agoraio') ?></label></th>
       <td>
         <input
@@ -270,7 +270,7 @@ function render_agoraio_channel_form_appearance($channel) {
           data-default-color="#1E73BE">
       </td>
     </tr>
-    <tr>
+    <tr id="disabledButtonColorRow">
       <th scope="row"><label for="disabledButtonColor"><?php _e('Disabled Button Color', 'agoraio') ?></label></th>
       <td>
         <input

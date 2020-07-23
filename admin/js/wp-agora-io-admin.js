@@ -144,25 +144,34 @@ function activateAgoraTabs() {
 	});
 
 	function validateChannelType() {
-		var typeChannel = $(this).val();
-		// var bhr = $('#broadcast-host-row');
-		var linkTab2 = $('#link-tab-2');
-		var linkTab3 = $('#link-tab-3');
-		// var splashImageURL = $('#splashImageURL').parent().parent();
-		var watchButtonText = $('#watchButtonText').parent().parent();
-		var watchButtonIcon = $('#watchButtonIcon').parent().parent();
+		const typeChannel = $(this).val();
+		// const bhr = $('#broadcast-host-row');
+		const linkTab2 = $('#link-tab-2');
+		const linkTab3 = $('#link-tab-3');
+		
+
+		const activeColorRow = $('#activeButtonColorRow');
+		const disabledColorRow = $('#disabledButtonColorRow');
+		const splashImageURL = $('#splashImageURL').parent().parent();
+		const watchButtonText = $('#watchButtonText').parent().parent();
+		const watchButtonIcon = $('#watchButtonIcon').parent().parent();
 		if (typeChannel==='communication') {
 			// bhr.hide();
 			linkTab2.parent().hide();
 			linkTab3.parent().hide();
-			// splashImageURL.hide();
+			
+			activeColorRow.hide();
+			disabledColorRow.hide();
+			splashImageURL.hide();
 			watchButtonText.hide();
 			watchButtonIcon.hide();
 		} else {
 			// bhr.show();
 			linkTab2.parent().show();
 			linkTab3.parent().show();
-			// splashImageURL.show();
+			activeColorRow.show();
+			disabledColorRow.show();
+			splashImageURL.show();
 			watchButtonText.show();
 			watchButtonIcon.show();
 		}
