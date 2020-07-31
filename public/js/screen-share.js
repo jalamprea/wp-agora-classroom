@@ -1,6 +1,6 @@
 window.AGORA_SCREENSHARE_UTILS = {
   toggleScreenShareBtn: function () {
-    jQuery('#screen-share-btn').toggleClass('btn-danger');
+    // jQuery('#screen-share-btn').toggleClass('btn-danger');
     jQuery('#screen-share-icon').toggleClass('fa-share-square').toggleClass('fa-times-circle');
   },
 
@@ -130,7 +130,7 @@ window.AGORA_SCREENSHARE_UTILS = {
     localCamera.stream.play(videoContainer); // play the camera within the full-screen-video div
     jQuery("#video-btn").prop("disabled",false);
 
-    if (window.isMainHost && window.RTC && window.RTC.localStreams && RTC.localStreams.cam2.stream.play) {
+    if (window.isMainHost && window.RTC && window.RTC.localStreams && RTC.localStreams.cam2.stream.streamId) {
       RTC.localStreams.cam2.stream.play('local-video-cam2');
       jQuery('#local-video-cam2').show();
     }
