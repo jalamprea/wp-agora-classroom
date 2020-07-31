@@ -92,6 +92,8 @@ async function countCameras() {
       window.availableCams = devices.filter(device => device.kind === "videoinput");
 
       if (window.availableCams.length>1) {
+        jQuery("#list-camera1").empty();
+        jQuery("#list-camera2").empty();
         window.availableCams.forEach(function (video) {
             jQuery("<option/>", {
               value: video.deviceId,
@@ -119,21 +121,22 @@ async function countCameras() {
   return 0;
 }
 
+// init Agora SDK per each client/cam
+function initCam(indexCam, cb) {
+  RTC.client[indexCam] = AgoraRTC.createClient({mode: 'rtc', codec: 'vp8'});
+  RTC.client[indexCam].init(agoraAppId, function () {
+    AgoraRTC.Logger.info("AgoraRTC client " + indexCam + " initialized");
+    agoraJoinChannel(channelName, indexCam, cb); // join channel upon successfull init
+  }, function (err) {
+    AgoraRTC.Logger.error("[ERROR] : AgoraRTC client " + indexCam + " init failed", err);
+  });
+};
 
 async function initClientAndJoinChannel(agoraAppId, channelName) {
   // https://docs.agora.io/en/faq/API%20Reference/web/modules/agorartc.logger.html
   AgoraRTC.Logger.setLogLevel(AgoraRTC.Logger.WARNING);
 
-  // init Agora SDK per each client/cam
-  const initCam = function(indexCam, cb) {
-    RTC.client[indexCam] = AgoraRTC.createClient({mode: 'rtc', codec: 'vp8'});
-    RTC.client[indexCam].init(agoraAppId, function () {
-      AgoraRTC.Logger.info("AgoraRTC client " + indexCam + " initialized");
-      agoraJoinChannel(channelName, indexCam, cb); // join channel upon successfull init
-    }, function (err) {
-      AgoraRTC.Logger.error("[ERROR] : AgoraRTC client " + indexCam + " init failed", err);
-    });
-  };
+  
 
   // Check if the current user is logged in:
   if (window.userID!==0) {
@@ -396,13 +399,16 @@ function initAgoraEvents() {
   RTC.client.cam1.on('stream-subscribed', function (evt) {
     const remoteStream = evt.stream;
     let remoteId = window.AGORA_UTILS.getRealUserId( remoteStream.getId() );
-    console.log('Stream-subscribed', remoteId);
+    console.log('Stream-subscribed', remoteId, RTC.remoteStreams);
 
     if (!RTC.remoteStreams[remoteId]) {
       RTC.remoteStreams[remoteId] = remoteStream;
       console.info('===> NEW STREAM-SUBSCRIBED', remoteId)
     } else {
       console.info('===> DUPLICATED STREAM-SUBSCRIBED', remoteId)
+      // In this case: Stop the existing one and replace it with the new one
+      RTC.remoteStreams[remoteId].stop();
+      RTC.remoteStreams[remoteId] = remoteStream;
     }
     // console.log('Stream subscribed:', remoteId);
     
@@ -417,7 +423,7 @@ function initAgoraEvents() {
       RTC.studentsDouble[remoteId][ remoteStream.getId() ] = remoteStream;
       isStudent = true;
     } else {
-      // this could be a screenShare stream... I need to validate if it is a random uid
+      // this is a screenShare stream... I need to validate if it is a random uid
       isStudent = false;
     }
 
@@ -432,6 +438,9 @@ function initAgoraEvents() {
           hostVideoDiv.classList.add('videoItem');
           document.getElementById('main-video-container').appendChild(hostVideoDiv);
           remoteStream.play('host-video-' + remoteId);
+
+          document.getElementById('host-video-' + remoteId).removeEventListener('dblclick', toggleFullscreenDiv);
+          document.getElementById('host-video-' + remoteId).addEventListener('dblclick', toggleFullscreenDiv);
         }
       } else {
         // this stream is from another student.
@@ -439,17 +448,17 @@ function initAgoraEvents() {
         if (isStudent) {
           addRemoteStreamMiniView(remoteStream);
         } else {
-          // this is a screenShare stream, so we need:
+          // this is a screenShare stream, so we need stop/hide cameras and show the new stream
 
           // Stop current main host cameras:
           RTC.remoteStreams[window.hostID].stop();
+
           const id_cam2 = window.hostID * (window.hostID + 123);
           if (RTC.remoteStreams[id_cam2] && RTC.remoteStreams[id_cam2].stop) {
             RTC.remoteStreams[id_cam2].stop();
             jQuery('#host-video-'+id_cam2).hide();
           }
 
-          // play screenshare over main host camera div:
           remoteStream.play('host-video-' + window.hostID);
         }
       }
@@ -492,8 +501,11 @@ function initAgoraEvents() {
       const host_id_cam2 = window.hostID * (window.hostID + 123);
       if (streamId===window.hostID || streamId===host_id_cam2) {
         jQuery('#host-video-'+streamId).remove();
-        RTC.hostJoined = false;
-        noHostImage.show();
+
+        if (streamId===window.hostID) {
+          RTC.hostJoined = false;
+          noHostImage.show();
+        }
       } else {
         // if this is not an student stream... is a random screnshare uid:
         if (streamId === evt.stream.getId() ) {

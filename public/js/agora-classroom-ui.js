@@ -134,7 +134,7 @@ function swapVideoStudentAndHost() {
 }
 
 
-// swap MainHost Cameras Layout
+// swap MainHost Cameras Layout... from dblClick on host cams
 function swapMainHostCameras(evt) {
   const clickedDiv = this;
   let divToMinimize = null;
@@ -231,5 +231,17 @@ function addRemoteStreamMiniView(remoteStream){
 
   var containerId = '#' + 'remote-container-' + streamId;
   jQuery(containerId).dblclick(swapVideoStudentAndHost);
+}
+
+
+
+function toggleFullscreenDiv(evt) {
+  const container = document.getElementById(this.id);
+  if (container.style.position==='fixed') {
+    // Restore normal styles
+    container.style = ""
+  } else {
+    container.style = "position: fixed;top:0;left:0;width:100vw;max-width:100%;height:100%;max-height:100%;z-index:99999"
+  }
 }
 // EOF
