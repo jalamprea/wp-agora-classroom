@@ -34,7 +34,7 @@ window.AGORA_SCREENSHARE_UTILS = {
       // Create the stream for screen sharing.
       var screenStream = AgoraRTC.createStream({
         streamID: uid,
-        audio: false, // Set the audio attribute as false to avoid any echo during the call.
+        audio: true, // Set the audio attribute as false to avoid any echo during the call.
         video: false,
         screen: true, // screen stream
         screenAudio: true, // audio from the screen

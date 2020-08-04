@@ -53,8 +53,8 @@ function initCameraLocalSettings() {
     const localData = JSON.parse(localDataRaw);
     console.log('Loading cam settings');
 
-    RTC.localStreams.cam1.device = window.availableCams.find(cam => cam.label===localData[0].label);
-    RTC.localStreams.cam2.device = window.availableCams.find(cam => cam.label===localData[1].label);
+    RTC.localStreams.cam1.device = window.availableCams.find(cam => localData[0] && cam.label===localData[0].label);
+    RTC.localStreams.cam2.device = window.availableCams.find(cam => localData[1] && cam.label===localData[1].label);
 
     if (!RTC.localStreams.cam1.device || !RTC.localStreams.cam2.device) {
       resetDefaultsCams();
@@ -441,6 +441,11 @@ function initAgoraEvents() {
 
           document.getElementById('host-video-' + remoteId).removeEventListener('dblclick', toggleFullscreenDiv);
           document.getElementById('host-video-' + remoteId).addEventListener('dblclick', toggleFullscreenDiv);
+
+          if( document.getElementById('host-screen-share')!==null ) {
+            jQuery('#host-video-' + remoteId).hide();            
+          }
+
         }
       } else {
         // this stream is from another student.
@@ -451,7 +456,8 @@ function initAgoraEvents() {
           // this is a screenShare stream, so we need stop/hide cameras and show the new stream
 
           // Stop current main host cameras:
-          RTC.remoteStreams[window.hostID].stop();
+          // RTC.remoteStreams[window.hostID].stop();
+          jQuery('#host-video-' + window.hostID).hide();
 
           const id_cam2 = window.hostID * (window.hostID + 123);
           if (RTC.remoteStreams[id_cam2] && RTC.remoteStreams[id_cam2].stop) {
@@ -459,7 +465,13 @@ function initAgoraEvents() {
             jQuery('#host-video-'+id_cam2).hide();
           }
 
-          remoteStream.play('host-video-' + window.hostID);
+          const hostScreenDiv = document.createElement('div');
+          hostScreenDiv.id = 'host-screen-share';
+          hostScreenDiv.classList.add('videoItem');
+          document.getElementById('main-video-container').appendChild(hostScreenDiv);
+          
+          // remoteStream.play('host-video-' + window.hostID);
+          remoteStream.play('host-screen-share');
         }
       }
     } else {
@@ -512,6 +524,8 @@ function initAgoraEvents() {
           console.log('Stop screenshare...');
           RTC.remoteStreams[streamId].stop(); // stop playing the feed
           delete RTC.remoteStreams[streamId]; // remove stream from list
+          jQuery('#host-screen-share').remove();
+          jQuery('#host-video-' + window.hostID).show();
 
           RTC.remoteStreams[window.hostID].play('host-video-' + window.hostID);
           if (RTC.remoteStreams[host_id_cam2] && RTC.remoteStreams[host_id_cam2].play) {
