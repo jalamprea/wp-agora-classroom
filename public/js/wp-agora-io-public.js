@@ -1,3 +1,9 @@
+// https redirection!
+if (window.location.protocol==='http:') {
+  window.location = window.location.href.replace('http:', 'https:');
+}
+
+
 // https://www.paulirish.com/2009/throttled-smartresize-jquery-event-handler/
 (function($,sr){
 
