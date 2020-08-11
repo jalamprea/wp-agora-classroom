@@ -74,6 +74,7 @@ class WP_Agora_PageTemplate {
     if ( !$post ) {
       return $template;
     }
+
     
     $matches = [];
     $found = preg_match('/channel_id="(.*?)"/mi', $post->post_content, $matches);
@@ -83,40 +84,10 @@ class WP_Agora_PageTemplate {
       global $channel;
       global $agora;
 
-      $channel_id = $matches[1];
-      if (strpos($post->post_content, '[agora-communication')>=0) {
-        $instance = $this->agora->getShortcodeAttrs('agora-communication', []);
-      } else {
-        $instance = $this->agora->getShortcodeAttrs('agora-broadcast', []);
-      }
-      $channel = WP_Agora_Channel::get_instance($channel_id);
-      $agora = $this->agora;
-
-      $bgMatches = [];
-      $bgFound = preg_match('/ background="(.*?)"/mi', $post->post_content, $bgMatches);
-      if ($bgFound) {
-        $instance['background'] = $bgMatches[1];
-      }
-
+      // ENQUEUE COMMONS STYLES AND SCRIPTS
 
       wp_enqueue_script( 'AgoraSDK', plugin_dir_url( __FILE__ ).'js/agora/AgoraRTCSDK-3.1.1.js', array('jquery'), null );
-      if (strpos($post->post_content, '[agora-communication')>=0) {
-        $slickURL = plugin_dir_url( __FILE__ ) . 'js/slick-1.8.1/';
-        wp_enqueue_script( 'jquery.slick', $slickURL . 'slick.min.js', array('jquery'), null );
-        wp_enqueue_style( 'jquery.slick.css', $slickURL . 'slick.css', null, null );
-        wp_enqueue_style( 'jquery.slick.theme', $slickURL . 'slick-theme.css', null, null );
-
-        wp_enqueue_script( 'agora-classroom-client',
-          plugin_dir_url( __FILE__ ) .'js/agora-classroom-client.js', array('jquery'), null, true );
-        wp_enqueue_script( 'agora-classroom-ui',
-          plugin_dir_url( __FILE__ ) .'js/agora-classroom-ui.js', array('agora-classroom-client'), null, true );
-
-        wp_enqueue_script('screen-share', 
-            plugin_dir_url( __FILE__ ) . "js/screen-share.js", array('jquery'), null, true);
-        wp_enqueue_script( 'agora-communication-ui',
-          plugin_dir_url( __FILE__ ) .'js/communication-ui.js', array('jquery'), null, true );
-      }
-
+      
       $bootstrap_css = plugin_dir_url( __FILE__ ) . 'js/bootstrap/bootstrap.min.css';
       $bootstrap_js = plugin_dir_url( __FILE__ ) . 'js/bootstrap/bootstrap.min.js';
       $bootstrap_popper_js = plugin_dir_url( __FILE__ ) . 'js/bootstrap/popper.min.js';
@@ -129,16 +100,47 @@ class WP_Agora_PageTemplate {
       wp_enqueue_style( 'agora-fullscreen',
         plugin_dir_url( __FILE__ ) . 'css/wp-agora-fullscreen.css', array(), null, 'all' );
 
-
       // Return default template if we don't have a custom one defined
       $template_in_use = get_post_meta( $post->ID, '_wp_page_template', true );
+      // die(print_r($template_in_use, true));
       if ( !isset( $this->templates[$template_in_use] ) ) {
         return $template;
-      } 
+      }
 
       $file = plugin_dir_path(__FILE__) . 'views/' . get_post_meta($post->ID, '_wp_page_template', true);
 
-      if (strpos($post->post_content, '[agora-broadcast')!==false) {
+      $channel_id = $matches[1];
+      if (strpos($post->post_content, '[agora-communication')>=0) {
+        $instance = $this->agora->getShortcodeAttrs('agora-communication', []);
+      } else {
+        $instance = $this->agora->getShortcodeAttrs('agora-broadcast', []);
+      }
+      $channel = WP_Agora_Channel::get_instance($channel_id);
+      $agora = $this->agora;
+      
+      $bgMatches = [];
+      $bgFound = preg_match('/ background="(.*?)"/mi', $post->post_content, $bgMatches);
+      if ($bgFound) {
+        $instance['background'] = $bgMatches[1];
+      }
+      
+
+      if (strpos($post->post_content, '[agora-communication')>=0) {
+        $slickURL = plugin_dir_url( __FILE__ ) . 'js/slick-1.8.1/';
+        wp_enqueue_script( 'jquery.slick', $slickURL . 'slick.min.js', array('jquery'), null );
+        wp_enqueue_style( 'jquery.slick.css', $slickURL . 'slick.css', null, null );
+        wp_enqueue_style( 'jquery.slick.theme', $slickURL . 'slick-theme.css', null, null );
+
+        wp_enqueue_script( 'agora-classroom-client',
+          plugin_dir_url( __FILE__ ) .'js/agora-classroom-client.js', array('jquery'), null, true );
+        wp_enqueue_script( 'agora-classroom-ui',
+          plugin_dir_url( __FILE__ ) .'js/agora-classroom-ui.js', array('agora-classroom-client'), null, true );
+
+        // wp_enqueue_script('screen-share', 
+        //     plugin_dir_url( __FILE__ ) . "js/screen-share.js", array('jquery'), null, true);
+        // wp_enqueue_script( 'agora-communication-ui',
+        //   plugin_dir_url( __FILE__ ) .'js/communication-ui.js', array('jquery'), null, true );
+      } else if (strpos($post->post_content, '[agora-broadcast')>=0) {
         $current_user = wp_get_current_user();
         $props = $channel->get_properties();
         if ((int)$props['host']===$current_user->ID) {
