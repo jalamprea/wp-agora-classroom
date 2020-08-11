@@ -4,7 +4,7 @@
 **Requires at least:** 5.0.0  
 **Tested up to:** 5.4  
 **Requires PHP:** 7.1
-**Stable tag:** 1.0.5
+**Stable tag:** 1.0.6
 **License:** CC BY-ND 4.0    
 **License URI:** https://creativecommons.org/licenses/by-nd/4.0  
 **GitHub:** https://github.com/jalamprea/wp-agora-classroom
