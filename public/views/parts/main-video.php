@@ -17,7 +17,11 @@
       <img src="<?php echo $props['appearance']['noHostImageURL'] ?>" alt="nohost-image" id="nohost-image" style="display: none">
       <?php endif; ?>
 
-      <h2 id="non-logged-msg" style="display: none"><?php _e('Log in to join this channel', 'agoraio'); ?></h2>
+      <h2 id="non-logged-msg" style="display: none">
+        <a href="/login">
+          <?php _e('Log in to join this channel', 'agoraio'); ?>
+        </a>
+      </h2>
       <div id="rejoin-container" class="rejoin-container" style="display: none">
         <button id="rejoin-btn" class="btn btn-primary btn-lg" type="button">
           <span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>

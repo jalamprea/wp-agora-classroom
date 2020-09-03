@@ -36,6 +36,21 @@ if (window.location.protocol==='http:') {
 
 window.AGORA_UTILS = {
 
+  toggleFullscreen: function() {
+    const root = jQuery('#body-row');
+    if(document.webkitFullscreenElement) {
+      document.webkitCancelFullScreen();
+      if (root.hasClass('agora-fullscreen')) {
+        root.removeClass('agora-fullscreen')
+      }
+    } else {
+      root[0].webkitRequestFullScreen();
+      if (!root.hasClass('agora-fullscreen')) {
+        root.addClass('agora-fullscreen')
+      }
+    }
+  },
+
   getRealUserId: function(uid) {
     if (String(uid).indexOf(window.UID_SUFFIX)>0) {
       const id = String(uid).substring(0, String(uid).length - window.UID_SUFFIX.length - 1); // remove UID_SUFFIX and Random integer

@@ -46,12 +46,21 @@ window.AGORA_SCREENSHARE_UTILS = {
         AgoraRTC.Logger.info("getScreen successful");
         localScreen.stream = screenStream; // keep track of the screen stream
 
+        localScreen.stream.stream.getVideoTracks()[0].onended = function() {
+          window.AGORA_SCREENSHARE_UTILS.stopScreenShare(() => {
+            window.AGORA_SCREENSHARE_UTILS.toggleScreenShareBtn();
+            const loaderIcon = jQuery("#screen-share-btn").find('.spinner-border');
+            const closeIcon = jQuery('#screen-share-icon');
+            loaderIcon.hide();
+            closeIcon.show();
+          });
+        }
+
         window.screenClient.publish(screenStream, function (err) {
           AgoraRTC.Logger.error("[ERROR] : publish screen stream error: " + err);
         });
 
         jQuery("#screen-share-btn").prop("disabled", false); // enable button
-        window.screenShareActive = true;
         cb(null, true);
       }, function (err) {
         AgoraRTC.Logger.error("[ERROR] : getScreen failed", err);
@@ -83,13 +92,31 @@ window.AGORA_SCREENSHARE_UTILS = {
     }, userId);
 
     window.screenClient.on('stream-published', function (evt) {
-      const localCamera = window.RTC && window.RTC.localStreams ? RTC.localStreams.cam1 : localStreams.camera;
       
       AgoraRTC.Logger.info("ScreenShare stream published successfully");
-      localCamera.stream.muteVideo(); // disable the local video stream (will send a mute signal)
-      localCamera.stream.stop(); // stop playing the local stream
+      
+
+      const localCamera = window.RTC && window.RTC.localStreams ? RTC.localStreams.cam1 : localStreams.camera;
 
       if (window.isMainHost) {
+        const video1 = jQuery('#local-video-cam1').find('video');
+        if (video1[0].id !== 'video'+window.hostID) {
+          // this mean that the central area is being used by some student camera
+          const mainVideoEl = document.getElementById('player_' + window.hostID);
+          
+          const event = new MouseEvent('dblclick', {
+              'view': window,
+              'bubbles': true,
+              'cancelable': true
+            });
+          // TODO: No works this line because screenshare is alrady in progress :(
+          mainVideoEl.parentElement.parentElement.dispatchEvent(event);
+
+        }
+
+        // localCamera.stream.muteVideo(); // disable the local video stream (will send a mute signal)
+        localCamera.stream.stop(); // stop playing the local stream
+
         if (window.RTC.localStreams.cam2.id!=="") {
           window.RTC.localStreams.cam2.stream.stop();
           jQuery('#local-video-cam2').hide();
@@ -109,7 +136,9 @@ window.AGORA_SCREENSHARE_UTILS = {
       } */
 
       // localStreams.screen.stream.play('full-screen-video'); // play the screen share as full-screen-video (vortext effect?)
-      jQuery("#video-btn").prop("disabled",true); // disable the video button (as cameara video stream is disabled)
+      jQuery("#video-btn").prop("disabled", true); // disable the video button (as cameara video stream is disabled)
+
+      window.screenShareActive = true;
     });
     
     window.screenClient.on('stopScreenSharing', function (evt) {
@@ -121,6 +150,11 @@ window.AGORA_SCREENSHARE_UTILS = {
   stopScreenShare: function (cb) {
     const localScreen = window.RTC && window.RTC.localStreams ? RTC.localStreams.screen : window.localStreams.screen;
     const localCamera = window.RTC && window.RTC.localStreams ? RTC.localStreams.cam1 : localStreams.camera;
+
+    // TODO: this should not be needed... but just in case.
+    if (localScreen.id==="") {
+      return false;
+    }
 
     localScreen.stream.muteVideo(); // disable the local video stream (will send a mute signal)
     localScreen.stream.stop(); // stop playing the local stream

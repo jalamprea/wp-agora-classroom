@@ -173,7 +173,7 @@ $current_user       = wp_get_current_user();
 
       // create client instance
       window.agoraClient = AgoraRTC.createClient({mode: 'live', codec: 'vp8'}); // h264 better detail at a higher motion
-      window.screenClient = AgoraRTC.createClient({mode: 'rtc', codec: 'vp8'}); 
+      window.screenClient = AgoraRTC.createClient({mode: 'rtc', codec: 'vp8'});
 
       window.mainStreamId; // reference to main stream
 

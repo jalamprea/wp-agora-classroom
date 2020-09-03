@@ -8,15 +8,18 @@ window.AGORA_COMMUNICATION_UI = {
     jQuery("#screen-share-btn").prop("disabled", false);
     jQuery("#exit-btn").prop("disabled", false);
 
-    jQuery("#mic-btn").click(function(){
+    jQuery("#mic-btn").click(function(evt){
+      evt.preventDefault();
       window.AGORA_COMMUNICATION_UI.toggleMic(localStream);
     });
 
-    jQuery("#video-btn").click(function(){
+    jQuery("#video-btn").click(function(evt){
+      evt.preventDefault();
       window.AGORA_COMMUNICATION_UI.toggleVideo(localStream);
     });
 
-    jQuery("#screen-share-btn").click(function() {
+    jQuery("#screen-share-btn").click(function(evt) {
+      evt.preventDefault();
       const isSafari = navigator.vendor.match(/[Aa]+pple/g);
       if (isSafari && isSafari.length>0) {
         alert('Screen share is not supported on safari');
@@ -47,7 +50,8 @@ window.AGORA_COMMUNICATION_UI = {
       }
     });
 
-    jQuery("#exit-btn").click(function(){
+    jQuery("#exit-btn").click(function(evt){
+      evt.preventDefault();
       const leaveMsg = jQuery('#leave-channel-msg').html();
       const sure = confirm(leaveMsg);
       if (sure) {
@@ -104,6 +108,7 @@ window.AGORA_COMMUNICATION_UI = {
     });
 
     camSettingsModal.find('.btn-primary').click(function saveCamerasSettings(evt) {
+      evt.preventDefault();
       const scope = this;
       const thisButton = jQuery(this);
       const errorDiv = jQuery('#errorSaveCams');

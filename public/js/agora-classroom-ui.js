@@ -4,7 +4,8 @@
  *
  * Behavior: play selected container as full screen - swap out current full screen stream
  */
-function swapVideoStudentAndHost() {
+function swapVideoStudentAndHost(e) {
+  e.preventDefault();
 
   if (!RTC.hostJoined && !window.isMainHost) {
     console.log('no host joined... action ignored');
@@ -81,9 +82,9 @@ function swapVideoStudentAndHost() {
   }
 
   // move student to the main player and main host video into the student div
-  function swapStudentToTeacher(uid, streamIdWithSuffix) {
+  function swapStudentToTeacher(remoteUID, streamIdWithSuffix) {
 
-    const clickedStudentStream = RTC.studentsDouble[uid][streamIdWithSuffix];
+    const clickedStudentStream = RTC.studentsDouble[remoteUID][streamIdWithSuffix];
     clickedStudentStream.stop();
 
     mainHostStream.stop();
@@ -105,12 +106,12 @@ function swapVideoStudentAndHost() {
     clickedStudentStream.play(mainPlayerID);
 
     // play main host on the student box
-    mainHostStream.play('agora_remote_'+uid);
+    mainHostStream.play('agora_remote_'+remoteUID);
   }
 
   // change main player from one student to another student
-  function swapStudents(newUid, newStreamIdWithSuffix, currentUid, currentStreamId) {
-    const clickedStudentStream = RTC.studentsDouble[newUid][newStreamIdWithSuffix];
+  function swapStudents(studentUID, studentStreamId, currentUid, currentStreamId) {
+    const clickedStudentStream = RTC.studentsDouble[studentUID][studentStreamId];
     const currentMainStudentStream = RTC.studentsDouble[currentUid][currentStreamId];
 
     // stop new clicked student
@@ -129,16 +130,22 @@ function swapVideoStudentAndHost() {
     currentMainStudentStream.play('agora_remote_' + currentUid);
 
     // play mainHost on the new student div
-    mainHostStream.play('agora_remote_' + newUid);
+    mainHostStream.play('agora_remote_' + studentUID);
   }
 }
 
 
 // swap MainHost Cameras Layout... from dblClick on host cams
 function swapMainHostCameras(evt) {
+
+  if (window.screenShareActive) {
+    console.log('screen in progress... action ignored');
+    return;
+  }
+
   const clickedDiv = this;
   let divToMinimize = null;
-
+  
   if (clickedDiv.children[0].id.indexOf(window.UID_SUFFIX)>0) {
     console.log('invalid click on student div')
     return;

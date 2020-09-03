@@ -328,7 +328,7 @@ function agoraLeaveChannel() {
     jQuery('#rejoin-container').show();
     jQuery('#buttons-container').addClass('hidden');
 
-    jQuery('#slick-avatars').slick('unslick').html('').slick(window.slickSettings);
+    // jQuery('#slick-avatars').slick('unslick').html('').slick(window.slickSettings);
     
     // show the modal overlay to join
     // jQuery("#modalForm").modal("show"); 
@@ -401,6 +401,7 @@ function initAgoraEvents() {
     const remoteStream = evt.stream;
     let remoteId = window.AGORA_UTILS.getRealUserId( remoteStream.getId() );
     console.log('Stream-subscribed', remoteId, RTC.remoteStreams);
+    // debugger;
 
     if (!RTC.remoteStreams[remoteId]) {
       RTC.remoteStreams[remoteId] = remoteStream;
@@ -428,7 +429,6 @@ function initAgoraEvents() {
       isStudent = false;
     }
 
-
     if (!window.isMainHost) {
 
       // i'm student but receiving main host stream:
@@ -449,12 +449,26 @@ function initAgoraEvents() {
 
         }
       } else {
-        // this stream is from another student.
+        // this stream is from another student?
         // hostVideoDiv.classList.add('student-video');
         if (isStudent) {
           addRemoteStreamMiniView(remoteStream);
         } else {
+
+          const mainVideoEl = document.getElementById('player_' + window.hostID);
+          if (mainVideoEl.parentElement.id!=='host-video-' + window.hostID) {
+            // main video is not on the main screen... it should be restored.
+            const event = new MouseEvent('dblclick', {
+              'view': window,
+              'bubbles': true,
+              'cancelable': true
+            });
+            // TODO: No works this line because screenshare is alrady in progress :(
+            mainVideoEl.parentElement.parentElement.dispatchEvent(event);
+          }
+
           // this is a screenShare stream, so we need stop/hide cameras and show the new stream
+          
 
           // Stop current main host cameras:
           // RTC.remoteStreams[window.hostID].stop();
@@ -473,6 +487,7 @@ function initAgoraEvents() {
           
           // remoteStream.play('host-video-' + window.hostID);
           remoteStream.play('host-screen-share');
+          window.screenShareActive = true;
         }
       }
     } else {
@@ -533,15 +548,19 @@ function initAgoraEvents() {
             RTC.remoteStreams[host_id_cam2].play('host-video-' + host_id_cam2)
             jQuery('#host-video-' + host_id_cam2).show();
           }
+
+          window.screenShareActive = false;
         }
       }
     }
-
 
     if (RTC.remoteStreams[streamId] !== undefined) {
       let removeStream = false;
       if (RTC.studentsDouble[streamId] && RTC.studentsDouble[streamId][evt.stream.getId()]) {
         delete RTC.studentsDouble[streamId][evt.stream.getId()];
+        if (RTC.studentsDouble[streamId] && Object.keys(RTC.studentsDouble[streamId]).length===0) {
+          delete RTC.studentsDouble[streamId];
+        }
         const video = jQuery('#video'+evt.stream.getId());
         removeStream = video && video.length>0;
       }
@@ -549,7 +568,31 @@ function initAgoraEvents() {
       if (removeStream) {
         RTC.remoteStreams[streamId].stop(); // stop playing the feed
         delete RTC.remoteStreams[streamId]; // remove stream from list
-        jQuery('#remote-container-'+streamId).remove();
+
+        const remoteContainer = jQuery('#remote-container-'+streamId);
+        const videoTag = remoteContainer.find('video');
+        if (videoTag && videoTag.length>0 && videoTag[0].id !== 'video'+evt.stream.getId()) {
+          const mainHostStream = window.isMainHost ? RTC.localStreams.cam1.stream : RTC.remoteStreams[window.hostID];
+          mainHostStream.stop();
+
+          const mainPlayerID = window.isMainHost ? 'local-video-cam1' : 'host-video-' + window.hostID;
+          mainHostStream.play(mainPlayerID);
+
+          if (window.isMainHost) {
+            if (RTC.localStreams.cam2 && RTC.localStreams.cam2.stream) {
+              document.getElementById('local-video-cam2').style.display = 'block';
+              RTC.localStreams.cam2.stream.play('local-video-cam2');
+            }
+          } else {
+            const idCam2 = window.hostID * (window.hostID + 123);
+            if( RTC.remoteStreams[idCam2] ) {
+              // enable again the second camera
+              document.getElementById('host-video-'+idCam2).style.display = 'block';
+              RTC.remoteStreams[idCam2].play('host-video-'+idCam2); 
+            }
+          }
+        }
+        remoteContainer.remove();
 
         // also remove it form the participants list
         RTC.participants[streamId] = null;
