@@ -108,7 +108,6 @@ async function getMicDevices(mics) {
   jQuery("#list-mic").empty();
 
   mics.forEach(function(mic, i) {
-    debugger;
     let name = mic.label.split('(')[0];
     // const optionId = 'mic_' + i;
     if(name.split('Default - ')[1] != undefined) {

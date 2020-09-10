@@ -457,6 +457,17 @@ body .agora {
   background-color: #007bff;
 }
 
+.agora .toggleFullscreen {
+  float: right;
+}
+.agora .toggleFullscreen .fas {
+  color: #c3c3c3;
+  font-size: 20px;
+}
+.agora .toggleFullscreen .fas:hover {
+  color: #efefef;
+}
+
 /**
  * NEW Agora Classsroom
  * knit-to-wear header size: 60px;

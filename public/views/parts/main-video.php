@@ -2,6 +2,9 @@
     <h4 class="card-header">
       <?php wp_title(); ?> /
       <?php echo $current_user->display_name; ?>
+      <a class="toggleFullscreen">
+        <i class="fas fa-expand-arrows-alt"></i>
+      </a>
     </h4>
     <div id="main-video-container" class="videoContainer card-body form-row justify-content-center mx-0 d-flex align-items-center">
       <!-- main video goes here -->

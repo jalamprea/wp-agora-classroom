@@ -36,19 +36,36 @@ if (window.location.protocol==='http:') {
 
 window.AGORA_UTILS = {
 
-  toggleFullscreen: function() {
+  toggleFullscreen: function(evt) {
     const root = jQuery('#body-row');
-    if(document.webkitFullscreenElement) {
-      document.webkitCancelFullScreen();
-      if (root.hasClass('agora-fullscreen')) {
-        root.removeClass('agora-fullscreen')
-      }
+    const btn = jQuery(this).find('i').eq(0);
+
+    if (!document.fullscreenElement) {
+      root[0].requestFullscreen().then(() => {
+        if (!root.hasClass('agora-fullscreen')) {
+          root.addClass('agora-fullscreen')
+        }
+        btn.toggleClass('fa-expand-arrows-alt').toggleClass('fa-compress-arrows-alt')
+      }).catch(err => {
+        alert('Fullscreen mode not available on this browser');
+      });
     } else {
-      root[0].webkitRequestFullScreen();
-      if (!root.hasClass('agora-fullscreen')) {
-        root.addClass('agora-fullscreen')
+      if (document.exitFullscreen) {
+        document.exitFullscreen(); 
+        if (root.hasClass('agora-fullscreen')) {
+          root.removeClass('agora-fullscreen')
+        }
+        btn.toggleClass('fa-expand-arrows-alt').toggleClass('fa-compress-arrows-alt')
       }
     }
+
+    // if(document.webkitFullscreenElement) {
+    //   document.webkitCancelFullScreen();
+      
+    // } else {
+    //   root[0].webkitRequestFullScreen();
+      
+    // }
   },
 
   getRealUserId: function(uid) {

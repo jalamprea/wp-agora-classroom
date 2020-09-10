@@ -62,6 +62,9 @@ window.AGORA_COMMUNICATION_UI = {
 
     jQuery('#rejoin-btn').click(window.AGORA_COMMUNICATION_UI.rejoinChannel);
 
+
+    jQuery('.toggleFullscreen').click(window.AGORA_UTILS.toggleFullscreen)
+
     // keyboard listeners 
     jQuery(document).keypress(function(e) {
       switch (e.key) {
