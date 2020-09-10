@@ -22,6 +22,10 @@ window.RTC = {
       stream: {}
     }
   },
+  devices: {
+    cameras: [],
+    mics: []
+  },
   remoteStreams: {}, // remote streams obj struct [id : stream] 
   participants: {},
   hostJoined: false,
@@ -44,9 +48,15 @@ function initCameraLocalSettings() {
 
     jQuery('#enableCam2').prop('checked', true);
     RTC.localStreams.cam2.device.enabled = true;
+
+    let micDevice = window.RTC.devices.mics.find(m => m.label.indexOf('Default')>=0);
+    if (!micDevice) {
+      micDevice = window.RTC.devices.mics[0];
+    }
     
-    window.localStorage.setItem('AGORA_DEVICES_ORDER', JSON.stringify(window.availableCams));
-  }
+    const devicesArray = [...window.availableCams, micDevice];
+    window.localStorage.setItem('AGORA_DEVICES_ORDER', JSON.stringify(devicesArray));
+  };
 
   const localDataRaw = window.localStorage.getItem('AGORA_DEVICES_ORDER');
   if ( localDataRaw ) {
@@ -55,15 +65,16 @@ function initCameraLocalSettings() {
 
     RTC.localStreams.cam1.device = window.availableCams.find(cam => localData[0] && cam.label===localData[0].label);
     RTC.localStreams.cam2.device = window.availableCams.find(cam => localData[1] && cam.label===localData[1].label);
+    RTC.localStreams.cam1.mic = window.RTC.devices.mics.find(m => localData[2] && m.label===localData[2].label);
 
-    if (!RTC.localStreams.cam1.device || !RTC.localStreams.cam2.device) {
+    if (!RTC.localStreams.cam1.device || !RTC.localStreams.cam2.device || !RTC.localStreams.cam1.mic) {
       resetDefaultsCams();
       localData = JSON.parse(window.localStorage.getItem('AGORA_DEVICES_ORDER'));
     }
 
-    if (localData.length===3) {
-      RTC.localStreams.cam2.device.enabled = localData[2];
-      jQuery('#enableCam2').prop('checked', localData[2]);
+    if (localData.length===4) {
+      RTC.localStreams.cam2.device.enabled = localData[3];
+      jQuery('#enableCam2').prop('checked', localData[3]);
     } else {
       // load default values:
       jQuery('#enableCam2').prop('checked', true);
@@ -81,16 +92,42 @@ function initCameraLocalSettings() {
 
   jQuery('#list-camera1').val(RTC.localStreams.cam1.device.deviceId);
   jQuery('#list-camera2').val(RTC.localStreams.cam2.device.deviceId);
+  jQuery('#list-mic').val(RTC.localStreams.cam1.mic.deviceId);
 }
 
+
+async function getMicDevices(mics) {
+  AgoraRTC.Logger.info("Checking for Mic window.devices.....")
+
+  window.RTC.devices.mics = mics; // store mics array
+
+  jQuery("#list-mic").empty();
+
+  mics.forEach(function(mic, i) {
+    let name = mic.label.split('(')[0];
+    // const optionId = 'mic_' + i;
+    if(name.split('Default - ')[1] != undefined) {
+      name = '[Default Device]' // rename the default mic - only appears on Chrome & Opera
+    }
+    // jQuery('#mic-list').append('<a class="dropdown-item" id="' + optionId + '">' + name + '</a>');
+    jQuery("<option/>", {
+      value: mic.deviceId,
+      text: name,
+    }).appendTo("#list-mic")
+  });
+}
 
 window.availableCams = [];
 async function countCameras() {
   if ('mediaDevices' in navigator && 'getUserMedia' in navigator.mediaDevices){
     try {
-      const stream = await navigator.mediaDevices.getUserMedia({video: true});
+      
+
+      const stream = await navigator.mediaDevices.getUserMedia({video: true, audio: true});
       const devices = await navigator.mediaDevices.enumerateDevices();
       window.availableCams = devices.filter(device => device.kind === "videoinput");
+
+      await getMicDevices( devices.filter(device => device.kind === "audioinput") );
 
       if (window.availableCams.length>1) {
         jQuery("#list-camera1").empty();
@@ -202,23 +239,23 @@ function agoraJoinChannel(channelName, indexCam, cb) {
       // console.info("User " + uid + " join channel successfully");
       RTC.localStreams[indexCam].id = window.userID; // keep track of the stream uid 
       createCameraStream(uid, indexCam, cb);
+
+      if (indexCam==='cam1') {
+        window.AGORA_UTILS.agora_getUserAvatar(window.userID, function(gravatar) {
+          // console.log('callbackWithToken gravatar:', gravatar);
+          const url = gravatar.avatar.url;
+          RTC.participants[window.userID] = {
+            url: url,
+            user: gravatar.user
+          }
+          AGORA_COMMUNICATION_UI.updateParticipants();
+        });
+      }
     }, function(errorJoin) {
         AgoraRTC.Logger.error("[ERROR] : join channel failed", errorJoin);
-        /* if (err==='UID_CONFLICT') { } */
+        cb(errorJoin, null)
     });
 
-    if (indexCam==='cam1') {
-      
-      window.AGORA_UTILS.agora_getUserAvatar(window.userID, function(gravatar) {
-        // console.log('callbackWithToken gravatar:', gravatar);
-        const url = gravatar.avatar.url;
-        RTC.participants[window.userID] = {
-          url: url,
-          user: gravatar.user
-        }
-        AGORA_COMMUNICATION_UI.updateParticipants();
-      });
-    }
   };
 
   let userId = window.userID || 0;
@@ -245,6 +282,11 @@ function createCameraStream(uid, indexCam, cb) {
   };
   if (indexCam!=='cam1') {
     options.audio = false;
+  } else {
+    if (RTC.localStreams[indexCam].mic.deviceId  && !navigator.userAgent.includes('Firefox')) {
+      // debugger;
+      options.microphoneId = RTC.localStreams[indexCam].mic.deviceId;
+    }
   }
   const localStream = AgoraRTC.createStream(options);
   localStream.setVideoProfile(window.cameraVideoProfile);
@@ -290,6 +332,7 @@ function createCameraStream(uid, indexCam, cb) {
     cb && cb();
   }, function (err) {
     AgoraRTC.Logger.error("[ERROR] : getUserMedia failed", err);
+    cb && cb(err);
   });
 }
 

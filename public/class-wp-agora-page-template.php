@@ -86,7 +86,7 @@ class WP_Agora_PageTemplate {
 
       // ENQUEUE COMMONS STYLES AND SCRIPTS
 
-      wp_enqueue_script( 'AgoraSDK', plugin_dir_url( __FILE__ ).'js/agora/AgoraRTCSDK-3.1.1.js', array('jquery'), null );
+      wp_enqueue_script( 'AgoraSDK', plugin_dir_url( __FILE__ ).'js/agora/AgoraRTCSDK-3.2.0.js', array('jquery'), null );
       
       $bootstrap_css = plugin_dir_url( __FILE__ ) . 'js/bootstrap/bootstrap.min.css';
       $bootstrap_js = plugin_dir_url( __FILE__ ) . 'js/bootstrap/bootstrap.min.js';

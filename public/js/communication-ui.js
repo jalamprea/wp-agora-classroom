@@ -116,6 +116,7 @@ window.AGORA_COMMUNICATION_UI = {
 
       const cam1 = jQuery('#list-camera1').val();
       const cam2 = jQuery('#list-camera2').val();
+      const mic = jQuery('#list-mic').val();
 
       if (window.isMainHost && cam1===cam2) {
         errorDiv.html(errorDiv.data('error-samecam')).show();
@@ -146,8 +147,11 @@ window.AGORA_COMMUNICATION_UI = {
           if (cam2) {
             RTC.localStreams.cam2.device = window.availableCams.find(cam => cam.deviceId===cam2);
           }
+
+          // find mic according to the ID selected
+          const micDevice = window.RTC.devices.mics.find(m => m.deviceId===mic);
           
-          const newCamsArray = [RTC.localStreams.cam1.device, RTC.localStreams.cam2.device];
+          const newCamsArray = [RTC.localStreams.cam1.device, RTC.localStreams.cam2.device, micDevice];
 
           if (RTC.localStreams.cam2.device) {
             RTC.localStreams.cam2.device.enabled = jQuery('#enableCam2').prop('checked');
@@ -157,10 +161,18 @@ window.AGORA_COMMUNICATION_UI = {
           window.localStorage.setItem('AGORA_DEVICES_ORDER', JSON.stringify(newCamsArray));
           console.log('New camera settings updated!');
 
+          if (navigator.userAgent.includes('Firefox')) {
+            alert('Please reload your page to save changes in Firefox');
+            callbackSaveChanges(null);
+            return;
+          }
+
           // Switch CAM1
           if (RTC.localStreams.cam1.device.deviceId!==RTC.localStreams.cam1.stream.cameraId) {
-            RTC.localStreams.cam1.stream.switchDevice("video", RTC.localStreams.cam1.device.deviceId)
+            RTC.localStreams.cam1.stream.switchDevice("video", RTC.localStreams.cam1.device.deviceId, ()=>{console.log('Video OK')}, (err)=>{console.error('Change Video error:', err)})
           }
+
+          RTC.localStreams.cam1.stream.switchDevice("audio", mic, ()=>{console.log('mic ok')}, (err)=>{console.error('err mic')});
 
           // Switch CAM2
           if (RTC.localStreams.cam2.device && RTC.localStreams.cam2.device.enabled) {

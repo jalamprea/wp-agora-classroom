@@ -27,6 +27,14 @@
               </div>
             </div>
           </div>
+
+          <div class="col-12 mt-4">
+            <div class="input-field">
+              <label for="list-mic"><?php _e('Microphone', 'agoraio'); ?></label>
+              <select name="list-mic" id="list-mic"></select>
+            </div>
+          </div>
+
         </div>
 
         <div class="row">
