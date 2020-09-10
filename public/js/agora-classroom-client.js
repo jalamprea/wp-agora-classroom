@@ -47,7 +47,9 @@ function initCameraLocalSettings() {
     RTC.localStreams.cam2.device = window.availableCams[1];
 
     jQuery('#enableCam2').prop('checked', true);
-    RTC.localStreams.cam2.device.enabled = true;
+    if (RTC.localStreams.cam2.device) {
+      RTC.localStreams.cam2.device.enabled = true;
+    }
 
     let micDevice = window.RTC.devices.mics.find(m => m.label.indexOf('Default')>=0);
     if (!micDevice) {
@@ -77,8 +79,10 @@ function initCameraLocalSettings() {
       jQuery('#enableCam2').prop('checked', localData[3]);
     } else {
       // load default values:
-      jQuery('#enableCam2').prop('checked', true);
-      RTC.localStreams.cam2.device.enabled = true;
+      if (RTC.localStreams.cam2.device) {
+        jQuery('#enableCam2').prop('checked', true);
+        RTC.localStreams.cam2.device.enabled = true;
+      }
     }
 
     if (!RTC.localStreams.cam1.device || !RTC.localStreams.cam2.device) {
@@ -91,8 +95,8 @@ function initCameraLocalSettings() {
   }
 
   jQuery('#list-camera1').val(RTC.localStreams.cam1.device.deviceId);
-  jQuery('#list-camera2').val(RTC.localStreams.cam2.device.deviceId);
-  jQuery('#list-mic').val(RTC.localStreams.cam1.mic.deviceId);
+  RTC.localStreams.cam2.device && jQuery('#list-camera2').val(RTC.localStreams.cam2.device.deviceId);
+  RTC.localStreams.cam1.mic && jQuery('#list-mic').val(RTC.localStreams.cam1.mic.deviceId);
 }
 
 
@@ -104,6 +108,7 @@ async function getMicDevices(mics) {
   jQuery("#list-mic").empty();
 
   mics.forEach(function(mic, i) {
+    debugger;
     let name = mic.label.split('(')[0];
     // const optionId = 'mic_' + i;
     if(name.split('Default - ')[1] != undefined) {
@@ -121,15 +126,14 @@ window.availableCams = [];
 async function countCameras() {
   if ('mediaDevices' in navigator && 'getUserMedia' in navigator.mediaDevices){
     try {
-      
-
-      const stream = await navigator.mediaDevices.getUserMedia({video: true, audio: true});
-      const devices = await navigator.mediaDevices.enumerateDevices();
+      var stream = await navigator.mediaDevices.getUserMedia({video: true, audio: true});
+      var devices = await navigator.mediaDevices.enumerateDevices();
+      // console.log('DEVICES:', devices)
       window.availableCams = devices.filter(device => device.kind === "videoinput");
 
       await getMicDevices( devices.filter(device => device.kind === "audioinput") );
 
-      if (window.availableCams.length>1) {
+      if (window.availableCams.length>0) {
         jQuery("#list-camera1").empty();
         jQuery("#list-camera2").empty();
         window.availableCams.forEach(function (video) {
@@ -175,15 +179,20 @@ async function initClientAndJoinChannel(agoraAppId, channelName) {
   AgoraRTC.Logger.setLogLevel(AgoraRTC.Logger.WARNING);
 
   
-
   // Check if the current user is logged in:
   if (window.userID!==0) {
     const countCams = await countCameras();
     if (countCams>0) {
       console.log('=== Starting client 1')
-      initCam("cam1", function() {
+      initCam("cam1", function(err) {
 
-        if (countCams>1 && window.isMainHost && RTC.localStreams.cam2.device.enabled) {
+        if (err) {
+          console.log(err);
+          alert('Error initializing cameras!');
+          return;
+        }
+
+        if (!err && countCams>1 && window.isMainHost && RTC.localStreams.cam2.device.enabled) {
           console.log('=== Starting client 2');
           initCam("cam2");
         }
@@ -196,15 +205,16 @@ async function initClientAndJoinChannel(agoraAppId, channelName) {
       initAgoraEvents();
     }
 
+
     // remove all elements that are not allowed for students
     if (!window.isMainHost) {
       jQuery('.only-main-host').remove();
     }
 
     // disable camera settings if I have only one camera
-    if (countCams===1) {
-      jQuery('#cam-settings-btn').remove();
-    }
+    // if (countCams===1) {
+    //   jQuery('#cam-settings-btn').remove();
+    // }
 
     // Screenshare Client:
     RTC.client.screen = AgoraRTC.createClient({mode: 'rtc', codec: 'vp8'});
@@ -283,8 +293,7 @@ function createCameraStream(uid, indexCam, cb) {
   if (indexCam!=='cam1') {
     options.audio = false;
   } else {
-    if (RTC.localStreams[indexCam].mic.deviceId  && !navigator.userAgent.includes('Firefox')) {
-      // debugger;
+    if (RTC.localStreams[indexCam].mic && RTC.localStreams[indexCam].mic.deviceId  && !navigator.userAgent.includes('Firefox')) {
       options.microphoneId = RTC.localStreams[indexCam].mic.deviceId;
     }
   }
