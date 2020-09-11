@@ -468,6 +468,11 @@ body .agora {
   color: #efefef;
 }
 
+/** Overrides inline video styles to make sure all screen is always shown **/
+.agora .host-screen-share video {
+  object-fit: contain !important;
+}
+
 /**
  * NEW Agora Classsroom
  * knit-to-wear header size: 60px;
