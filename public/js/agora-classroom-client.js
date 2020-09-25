@@ -176,7 +176,7 @@ function initCam(indexCam, cb) {
 async function initClientAndJoinChannel(agoraAppId, channelName) {
   // https://docs.agora.io/en/faq/API%20Reference/web/modules/agorartc.logger.html
   AgoraRTC.Logger.enableLogUpload();
-  AgoraRTC.Logger.setLogLevel(AgoraRTC.Logger.WARNING);
+  AgoraRTC.Logger.setLogLevel(AgoraRTC.Logger.INFO);
 
   
   // Check if the current user is logged in:
