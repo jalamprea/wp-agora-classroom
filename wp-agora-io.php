@@ -11,7 +11,7 @@
  * Plugin Name:       WP Agora Classroom
  * Plugin URI:        https://github.com/jalamprea/wp-agora-classroom
  * Description:       Integrate the Agora Communication platform to create classroom channels and manage thier settings directly into WP.
- * Version:           1.0.14
+ * Version:           1.0.15
  * Author:            4045Media
  * Author URI:        https://4045media.com
  * License:           GPL-2.0+
@@ -28,7 +28,7 @@ if ( ! defined( 'WPINC' ) ) {
 /**
  * Currently plugin version based on SemVer - https://semver.org
  */
-define( 'WP_AGORA_IO_VERSION', '1.0.14' );
+define( 'WP_AGORA_IO_VERSION', '1.0.15' );
 
 /**
  * The code that runs during plugin activation.

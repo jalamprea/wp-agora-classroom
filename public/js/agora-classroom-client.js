@@ -177,6 +177,7 @@ async function initClientAndJoinChannel(agoraAppId, channelName) {
   // https://docs.agora.io/en/faq/API%20Reference/web/modules/agorartc.logger.html
   AgoraRTC.Logger.enableLogUpload();
   AgoraRTC.Logger.setLogLevel(AgoraRTC.Logger.INFO);
+  AgoraRTC.setParameter("JOIN_EXTEND", "{\"force_fir\":true}")
 
   
   // Check if the current user is logged in:
