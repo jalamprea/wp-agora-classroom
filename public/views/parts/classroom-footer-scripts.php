@@ -13,6 +13,7 @@
       window.isMainHost = <?php echo $channel->get_properties()['host']==$current_user->ID ? 'true' : 'false'; ?>;
       window.hostID = <?php echo $channel->get_properties()['host']; ?>;
 
+      // Everything starts here:
       window.AGORA_COMMUNICATION_UI.fullscreenInit();
 
       // Hide submenus

@@ -110,117 +110,7 @@ window.AGORA_COMMUNICATION_UI = {
       RTC.localStreams.cam2.device && jQuery('#list-camera2').val(RTC.localStreams.cam2.device.deviceId);
     });
 
-    camSettingsModal.find('.btn-primary').click(function saveCamerasSettings(evt) {
-      evt.preventDefault();
-      const scope = this;
-      const thisButton = jQuery(this);
-      const errorDiv = jQuery('#errorSaveCams');
-      errorDiv.html('').hide();
-
-      const cam1 = jQuery('#list-camera1').val();
-      const cam2 = jQuery('#list-camera2').val();
-      const mic = jQuery('#list-mic').val();
-
-      if (window.isMainHost && cam1===cam2) {
-        errorDiv.html(errorDiv.data('error-samecam')).show();
-        return;
-      }
-      
-      let waitForCallback = false;
-      console.log('Saving changes...')
-      const originalText = thisButton.html();
-      thisButton.toggleClass('disabled').attr('disabled', 'disabled');
-      thisButton.html( thisButton.data('loading-text') )
-
-      const callbackSaveChanges = (err) => {
-        thisButton.toggleClass('disabled').attr('disabled', null).html(originalText)
-
-        if (err) {
-          jQuery('#errorSaveCams').html(err.toString()).show();
-        } else {
-          jQuery('#errorSaveCams').html('').hide();
-          camSettingsModal.modal('hide');
-        }
-
-      };
-
-      try {
-          RTC.localStreams.cam1.device = window.availableCams.find(cam => cam.deviceId===cam1);
-
-          if (cam2) {
-            RTC.localStreams.cam2.device = window.availableCams.find(cam => cam.deviceId===cam2);
-          }
-
-          // find mic according to the ID selected
-          const micDevice = window.RTC.devices.mics.find(m => m.deviceId===mic);
-          
-          const newCamsArray = [RTC.localStreams.cam1.device, RTC.localStreams.cam2.device, micDevice];
-
-          if (RTC.localStreams.cam2.device) {
-            RTC.localStreams.cam2.device.enabled = jQuery('#enableCam2').prop('checked');
-            newCamsArray.push(RTC.localStreams.cam2.device.enabled)
-          }
-
-          window.localStorage.setItem('AGORA_DEVICES_ORDER', JSON.stringify(newCamsArray));
-          console.log('New camera settings updated!');
-
-          if (navigator.userAgent.includes('Firefox')) {
-            alert('Please reload your page to save changes in Firefox');
-            callbackSaveChanges(null);
-            return;
-          }
-
-          // Switch CAM1
-          if (RTC.localStreams.cam1.device.deviceId!==RTC.localStreams.cam1.stream.cameraId) {
-            RTC.localStreams.cam1.stream.switchDevice("video", RTC.localStreams.cam1.device.deviceId, ()=>{console.log('Video OK')}, (err)=>{console.error('Change Video error:', err)})
-          }
-
-          RTC.localStreams.cam1.stream.switchDevice("audio", mic, ()=>{console.log('mic ok')}, (err)=>{console.error('err mic')});
-
-          // Switch CAM2
-          if (RTC.localStreams.cam2.device && RTC.localStreams.cam2.device.enabled) {
-            if (RTC.localStreams.cam2.stream.streamId) {
-              if (RTC.localStreams.cam2.device.deviceId!==RTC.localStreams.cam2.stream.cameraId) {
-                RTC.localStreams.cam2.stream.switchDevice("video", RTC.localStreams.cam2.device.deviceId)
-              }
-              RTC.localStreams.cam2.stream.play('local-video-cam2');
-            } else {
-              // start the camera stream for the first time
-              waitForCallback = true;
-              initCam("cam2", callbackSaveChanges);
-            }
-            jQuery('#local-video-cam2').show();
-          } else {
-            // if camera is turned on... it should be turned off :D
-            if (RTC.localStreams.cam2.stream.streamId) {
-
-              waitForCallback = true;
-              RTC.client.cam2 && RTC.client.cam2.leave(() => {
-                RTC.localStreams.cam2.stream.stop() // stop the camera stream playback
-                RTC.client.cam2.unpublish(RTC.localStreams.cam2.stream); // unpublish the camera stream
-                RTC.localStreams.cam2.stream.close(); // clean up and close the camera stream
-                RTC.localStreams.cam2.stream.streamId = null;
-                jQuery('#local-video-cam2').remove();
-                AgoraRTC.Logger.info("client2 leaves channel");
-                callbackSaveChanges(null)
-              }, err => {
-                AgoraRTC.Logger.error("Client2 leave failed ", err); //error handling
-                callbackSaveChanges(err)
-              });
-            }
-          }
-
-          if (!waitForCallback) {
-            callbackSaveChanges(null)
-          }
-      } catch(ex) {
-        console.log(ex);
-        callbackSaveChanges(ex)
-      }
-
-
-
-    })
+    camSettingsModal.find('.btn-primary').click(saveCamerasSettings)
 
     jQuery("#users-btn").click(function(e) {
       e.preventDefault();
@@ -453,5 +343,119 @@ window.AGORA_COMMUNICATION_UI = {
     });
 
     jQuery('#users-btn').find('.badge-pill').text(ids.length);
+  }
+}
+
+
+
+
+function saveCamerasSettings(evt) {
+  evt.preventDefault();
+  const scope = this;
+  const thisButton = jQuery(this);
+  const errorDiv = jQuery('#errorSaveCams');
+  errorDiv.html('').hide();
+
+  const cam1 = jQuery('#list-camera1').val();
+  const cam2 = jQuery('#list-camera2').val();
+  const mic = jQuery('#list-mic').val();
+
+  if (window.isMainHost && cam1===cam2) {
+    errorDiv.html(errorDiv.data('error-samecam')).show();
+    return;
+  }
+  
+  let waitForCallback = false;
+  console.log('Saving changes...')
+  const originalText = thisButton.html();
+  thisButton.toggleClass('disabled').attr('disabled', 'disabled');
+  thisButton.html( thisButton.data('loading-text') )
+
+  const callbackSaveChanges = (err) => {
+    thisButton.toggleClass('disabled').attr('disabled', null).html(originalText)
+
+    if (err) {
+      jQuery('#errorSaveCams').html(err.toString()).show();
+    } else {
+      jQuery('#errorSaveCams').html('').hide();
+
+      const camSettingsModal = jQuery('#camSettingsModal');
+      camSettingsModal.modal('hide');
+    }
+
+  };
+
+  try {
+      RTC.localStreams.cam1.device = window.availableCams.find(cam => cam.deviceId===cam1);
+
+      if (cam2) {
+        RTC.localStreams.cam2.device = window.availableCams.find(cam => cam.deviceId===cam2);
+      }
+
+      // find mic according to the ID selected
+      const micDevice = window.RTC.devices.mics.find(m => m.deviceId===mic);
+      
+      const newCamsArray = [RTC.localStreams.cam1.device, RTC.localStreams.cam2.device, micDevice];
+
+      if (RTC.localStreams.cam2.device) {
+        RTC.localStreams.cam2.device.enabled = jQuery('#enableCam2').prop('checked');
+        newCamsArray.push(RTC.localStreams.cam2.device.enabled)
+      }
+
+      window.localStorage.setItem('AGORA_DEVICES_ORDER', JSON.stringify(newCamsArray));
+      console.log('New camera settings updated!');
+
+      if (navigator.userAgent.includes('Firefox')) {
+        alert('Please reload your page to save changes in Firefox');
+        callbackSaveChanges(null);
+        return;
+      }
+
+      // Switch CAM1
+      if (RTC.localStreams.cam1.device.deviceId!==RTC.localStreams.cam1.stream.cameraId) {
+        RTC.localStreams.cam1.stream.switchDevice("video", RTC.localStreams.cam1.device.deviceId, ()=>{console.log('Video OK')}, (err)=>{console.error('Change Video error:', err)})
+      }
+
+      RTC.localStreams.cam1.stream.switchDevice("audio", mic, ()=>{console.log('mic ok')}, (err)=>{console.error('err mic')});
+
+      // Switch CAM2
+      if (RTC.localStreams.cam2.device && RTC.localStreams.cam2.device.enabled) {
+        if (RTC.localStreams.cam2.stream.streamId) {
+          if (RTC.localStreams.cam2.device.deviceId!==RTC.localStreams.cam2.stream.cameraId) {
+            RTC.localStreams.cam2.stream.switchDevice("video", RTC.localStreams.cam2.device.deviceId)
+          }
+          RTC.localStreams.cam2.stream.play('local-video-cam2');
+        } else {
+          // start the camera stream for the first time
+          waitForCallback = true;
+          initCam("cam2", callbackSaveChanges);
+        }
+        jQuery('#local-video-cam2').show();
+      } else {
+        // if camera is turned on... it should be turned off :D
+        if (RTC.localStreams.cam2.stream.streamId) {
+
+          waitForCallback = true;
+          RTC.client.cam2 && RTC.client.cam2.leave(() => {
+            RTC.localStreams.cam2.stream.stop() // stop the camera stream playback
+            RTC.client.cam2.unpublish(RTC.localStreams.cam2.stream); // unpublish the camera stream
+            RTC.localStreams.cam2.stream.close(); // clean up and close the camera stream
+            RTC.localStreams.cam2.stream.streamId = null;
+            jQuery('#local-video-cam2').remove();
+            AgoraRTC.Logger.info("client2 leaves channel");
+            callbackSaveChanges(null)
+          }, err => {
+            AgoraRTC.Logger.error("Client2 leave failed ", err); //error handling
+            callbackSaveChanges(err)
+          });
+        }
+      }
+
+      if (!waitForCallback) {
+        callbackSaveChanges(null)
+      }
+  } catch(ex) {
+    console.log(ex);
+    callbackSaveChanges(ex)
   }
 }

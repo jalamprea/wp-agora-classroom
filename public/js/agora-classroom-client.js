@@ -40,6 +40,9 @@ window.AGORA_COMMUNICATION_CLIENT = {
   agoraLeaveChannel: agoraLeaveChannel
 };
 
+window.HIGH_BITRATE = 0;
+window.LOW_BITRATE = 1;
+
 function initCameraLocalSettings() {
   const resetDefaultsCams = function() {
     console.log('Resseting Camera settings!');
@@ -164,7 +167,9 @@ async function countCameras() {
 
 // init Agora SDK per each client/cam
 function initCam(indexCam, cb) {
+  // debugger;
   RTC.client[indexCam] = AgoraRTC.createClient({mode: 'rtc', codec: 'vp8'});
+  
   RTC.client[indexCam].init(agoraAppId, function () {
     AgoraRTC.Logger.info("AgoraRTC client " + indexCam + " initialized");
     agoraJoinChannel(channelName, indexCam, cb); // join channel upon successfull init
@@ -228,6 +233,7 @@ async function initClientAndJoinChannel(agoraAppId, channelName) {
 }
 
 // join a channel
+const isSafari = navigator.vendor.match(/[Aa]+pple/g);
 function agoraJoinChannel(channelName, indexCam, cb) {
   // const token = window.AGORA_TOKEN_UTILS.agoraGenerateToken();
 
@@ -249,6 +255,14 @@ function agoraJoinChannel(channelName, indexCam, cb) {
       AgoraRTC.Logger.info("User " + uid + " join channel successfully");
       // console.info("User " + uid + " join channel successfully");
       RTC.localStreams[indexCam].id = window.userID; // keep track of the stream uid 
+
+
+      if (!isSafari) {
+        RTC.client[indexCam].enableDualStream(
+          ()=>{ console.log('DualStream [%s] OK', indexCam) },
+          err => {console.error('Dual Stream failed', err)}
+        );
+      }
       createCameraStream(uid, indexCam, cb);
 
       if (indexCam==='cam1') {
@@ -454,7 +468,8 @@ function initAgoraEvents() {
     const remoteStream = evt.stream;
     let remoteId = window.AGORA_UTILS.getRealUserId( remoteStream.getId() );
     console.log('Stream-subscribed', remoteId, RTC.remoteStreams);
-    // debugger;
+    
+    
 
     if (!RTC.remoteStreams[remoteId]) {
       RTC.remoteStreams[remoteId] = remoteStream;
@@ -505,6 +520,10 @@ function initAgoraEvents() {
         // this stream is from another student?
         // hostVideoDiv.classList.add('student-video');
         if (isStudent) {
+          if (!isSafari) {
+            RTC.client.cam1.setRemoteVideoStreamType(remoteStream, window.LOW_BITRATE)
+          }
+
           addRemoteStreamMiniView(remoteStream);
         } else {
 
@@ -544,6 +563,11 @@ function initAgoraEvents() {
         }
       }
     } else {
+
+      if (!isSafari) {
+        RTC.client.cam1.setRemoteVideoStreamType(remoteStream, LOW_BITRATE)
+      }
+
       // I'm the host, so, i'm receiving streams from students
       addRemoteStreamMiniView(remoteStream);
     }

@@ -64,6 +64,7 @@ function swapVideoStudentAndHost(e) {
     mainHostStream.stop();
     clickedStudentStream.stop();
     clickedStudentStream.play('agora_remote_' + uid);
+    RTC.client.cam1.setRemoteVideoStreamType(clickedStudentStream, window.LOW_BITRATE)
 
     mainHostStream.play(mainPlayerID);
 
@@ -104,6 +105,7 @@ function swapVideoStudentAndHost(e) {
 
     // play remote student on the main host container
     clickedStudentStream.play(mainPlayerID);
+    RTC.client.cam1.setRemoteVideoStreamType(clickedStudentStream, window.HIGH_BITRATE)
 
     // play main host on the student box
     mainHostStream.play('agora_remote_'+remoteUID);
@@ -125,12 +127,14 @@ function swapVideoStudentAndHost(e) {
 
     // play new student on Main player
     clickedStudentStream.play(mainPlayerID);
+    RTC.client.cam1.setRemoteVideoStreamType(clickedStudentStream, window.HIGH_BITRATE)
 
     // play current student on the original div
     currentMainStudentStream.play('agora_remote_' + currentUid);
 
     // play mainHost on the new student div
     mainHostStream.play('agora_remote_' + studentUID);
+    RTC.client.cam1.setRemoteVideoStreamType(mainHostStream, window.LOW_BITRATE)
   }
 }
 
