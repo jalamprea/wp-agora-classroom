@@ -363,6 +363,7 @@ window.AGORA_COMMUNICATION_UI = {
         if (err) {
           console.error('Start Rec Error:', err);
           // window.AGORA_UTILS.showErrorMessage(err);
+          alert('Cloud Recording cannot be started due to a server error!')
         }
 
         if (res) {
@@ -378,6 +379,7 @@ window.AGORA_COMMUNICATION_UI = {
         if (err) {
           console.error('Stop Rec Error:', err);
           // window.AGORA_UTILS.showErrorMessage(err);
+          alert('Cloud Recording cannot be stopped')
         } else {
           if(!res.errors) {
             console.log(res);
