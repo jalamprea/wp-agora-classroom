@@ -114,3 +114,103 @@ window.AGORA_UTILS = {
     });
   }
 }
+
+
+window.AGORA_CLOUD_RECORDING = {
+  isCloudRecording: false,
+
+  startVideoRecording: function (cb) {
+    var params = {
+      action: 'cloud_record', // wp ajax action
+      sdk_action: 'start-recording',
+      cid: window.channelId,
+      cname: window.channelName,
+      uid: window.userID,
+      token: window.agoraToken
+    };
+    window.AGORA_UTILS.agoraApiRequest(ajax_url, params).done(function(res) {
+      // var startRecordURL = agoraAPI + window.agoraAppId + '/cloud_recording/resourceid/' + res.resourceId + '/mode/mix/start';
+      // console.log(res);
+      if (res && res.sid) {
+        window.resourceId = res.resourceId;
+        window.recordingId = res.sid;
+        window.uid = res.uid;
+        window.AGORA_CLOUD_RECORDING.isCloudRecording = true;
+
+        /* setTimeout(function() {
+          // window.resourceId = null;
+        }, 1000*60*5); // Agora DOCS: The resource ID is valid for five minutes. */
+        cb(null, res);
+      } else {
+        cb(res, null);
+      }
+    }).fail(function(err) {
+      if (err.responseText && err.responseText.length>0) {
+        cb(err.responseText, null);
+      } else {
+        cb(err, null);
+      }
+    })
+  },
+
+
+  stopVideoRecording: function (cb) {
+    var params = {
+      action: 'cloud_record', // wp ajax action
+      sdk_action: 'stop-recording',
+      cid: window.channelId,
+      cname: window.channelName,
+      uid: window.uid,
+      resourceId: window.resourceId,
+      recordingId: window.recordingId
+    };
+    window.AGORA_UTILS.agoraApiRequest(ajax_url, params).done(function(res) {
+      // var startRecordURL = agoraAPI + window.agoraAppId + '/cloud_recording/resourceid/' + res.resourceId + '/mode/mix/start';
+      // console.log('Stop:', res);
+      window.AGORA_CLOUD_RECORDING.isCloudRecording = false;
+      window.recording = res.serverResponse;
+      cb(null, res);
+
+    }).fail(function(err) {
+      console.error('API Error:', err.responseJSON ? err.responseJSON.errors : err);
+      cb(err, null);
+    })
+  },
+
+
+  queryVideoRecording: function () {
+    var params = {
+      action: 'cloud_record', // wp ajax action
+      sdk_action: 'query-recording',
+      cid: window.channelId,
+      cname: window.channelName,
+      uid: window.uid,
+      resourceId: window.resourceId,
+      recordingId: window.recordingId
+    };
+    window.AGORA_UTILS.agoraApiRequest(ajax_url, params).done(function(res) {
+      console.log('Query:', res);
+
+    }).fail(function(err) {
+      console.error('API Error:',err);
+    })
+  },
+
+  updateLayout: function() {
+    var params = {
+      action: 'cloud_record', // wp ajax action
+      sdk_action: 'updateLayout',
+      cid: window.channelId,
+      cname: window.channelName,
+      uid: window.uid,
+      resourceId: window.resourceId,
+      recordingId: window.recordingId
+    };
+    // window.AGORA_UTILS.agoraApiRequest(ajax_url, params).done(function(res) {
+    //   console.log('Query:', res);
+
+    // }).fail(function(err) {
+    //   console.error('API Error:',err);
+    // })
+  }
+}

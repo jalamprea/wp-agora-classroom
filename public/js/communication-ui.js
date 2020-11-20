@@ -18,6 +18,10 @@ window.AGORA_COMMUNICATION_UI = {
       window.AGORA_COMMUNICATION_UI.toggleVideo(localStream);
     });
 
+    jQuery("#cloud-recording-btn").click(function(){
+      window.AGORA_COMMUNICATION_UI.toggleRecording();
+    });
+
     jQuery("#screen-share-btn").click(function(evt) {
       evt.preventDefault();
       const isSafari = navigator.vendor.match(/[Aa]+pple/g);
@@ -343,7 +347,49 @@ window.AGORA_COMMUNICATION_UI = {
     });
 
     jQuery('#users-btn').find('.badge-pill').text(ids.length);
-  }
+  },
+
+  toggleRecording: function () {
+    if (window.loadingRecord) {
+      return false;
+    }
+
+    var btn = jQuery("#cloud-recording-btn");
+    if (btn.hasClass('start-rec')) {
+      window.loadingRecord = true;
+      btn.removeClass('start-rec').addClass('load-rec').attr('title', 'Stop Recording');
+      console.log("Starting rec...");
+      window.AGORA_CLOUD_RECORDING.startVideoRecording(function(err, res) {
+        if (err) {
+          console.error('Start Rec Error:', err);
+          // window.AGORA_UTILS.showErrorMessage(err);
+        }
+
+        if (res) {
+          btn.removeClass('load-rec').addClass('stop-rec');
+        } else {
+          btn.removeClass('load-rec').addClass('start-rec').attr('title', 'Start Recording');
+        }
+        window.loadingRecord = false;
+      });
+    } else {
+      console.log("Stoping rec...");
+      window.AGORA_CLOUD_RECORDING.stopVideoRecording(function(err, res) {
+        if (err) {
+          console.error('Stop Rec Error:', err);
+          // window.AGORA_UTILS.showErrorMessage(err);
+        } else {
+          if(!res.errors) {
+            console.log(res);
+            btn.removeClass('stop-rec').addClass('start-rec').attr('title', 'Start Recording');
+          } else {
+            console.error(res.errors);
+            // window.AGORA_UTILS.showErrorMessage(res.errors);
+          }
+        }
+      })
+    }
+  },
 }
 
 

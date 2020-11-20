@@ -1,4 +1,7 @@
-<?php $current_user = wp_get_current_user(); ?>
+<?php
+$current_user       = wp_get_current_user();
+$channelSettings    = $channel->get_properties();
+?>
 <!-- This file should primarily consist of HTML with a little bit of PHP. -->
 <div class="agora-classroom">
 

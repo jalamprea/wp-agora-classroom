@@ -227,6 +227,40 @@ html { height: auto !important; }
   height: 45px;
 }
 
+
+/*
+ * Cloud Recording Controls
+ */
+.agora .start-rec .inner-icon {
+  background-color: #fff;
+  border-radius: 50%;
+  height: 15px;
+  width: 15px;
+  min-width: 16px;
+  display: inline-block;
+}
+
+.agora .stop-rec .inner-icon {
+  border-radius: 0;
+  width: 15px;
+  height: 15px;
+  background-color: #fff;
+  display: inline-block;
+}
+
+.agora .load-rec .inner-icon {
+  display: inline-block;
+  width: 16px;
+  height: 16px;
+  vertical-align: text-bottom;
+  border: .2em solid #da4964;
+  border-right-color: transparent;
+  border-radius: 50%;
+  -webkit-animation: spinner-border .75s linear infinite;
+  animation: spinner-border .75s linear infinite;
+}
+
+
 .agora .controls-bottom #lower-ui-bar {
   display: flex;
 }

@@ -1,5 +1,5 @@
 <?php
-$current_path = plugins_url('wp-agora-io') . '/public';
+$current_path       = plugins_url('wp-agora-io') . '/public';
 $channelSettings    = $channel->get_properties();
 $videoSettings      = $channelSettings['settings'];
 $appearanceSettings = $channelSettings['appearance'];

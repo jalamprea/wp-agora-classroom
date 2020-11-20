@@ -1,4 +1,7 @@
-<?php $current_path = plugins_url('wp-agora-io') . '/public'; ?>
+<?php 
+$current_path       = plugins_url('wp-agora-io') . '/public';
+$channelSettings    = $channel->get_properties();
+?>
 <!DOCTYPE html>
 <html <?php language_attributes(); ?>>
 <head>
